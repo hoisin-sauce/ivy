@@ -41,7 +41,7 @@ class EphemeralMCP:
     type: str = "ephemeral_mcp"
 
 @dataclass
-class ModelRequest:
+class ModelChatRequest:
     model: str
     input: str | list[TextInput | ImageInput]
     system_prompt: Optional[str] = None
@@ -110,7 +110,7 @@ class Stats:
     reasoning_output_tokens: number
     tokens_per_second: number
     time_to_first_token_seconds: number
-    mean_load_time_seconds: Optional[number] = None
+    model_load_time_seconds: Optional[number] = None
 
 @dataclass
 class ModelResponse:
@@ -137,7 +137,7 @@ class ModelResponse:
                             case "reasoning":
                                 output_list.append(Reasoning(**output))
                             case "invalid_tool_call":
-                                match output["metadata"][type]:
+                                match output["metadata"]["type"]:
                                     case "invalid_arguments":
                                         output["metadata"] = InvalidToolArguments(**output["metadata"])
                                     case "invalid_name":
