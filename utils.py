@@ -1,6 +1,14 @@
-from typing import Any, Callable
+from itertools import chain
+from typing import Any, Callable, Iterable
 import queue
 import threading
+import typing
+
+def safe_is_subclass(obj: Any, class_or_tuple: typing.Type|tuple[typing.Type]) -> bool:
+    return isinstance(obj, type) and issubclass(object, class_or_tuple)
+
+def flatten_to_list[T](lst: Iterable[Iterable[T]]) -> list[T]:
+    return list(chain(*lst))
 
 def public_dir(obj: Any) -> list[str]:
     return [i for i in dir(obj) if not i.startswith("__")]
