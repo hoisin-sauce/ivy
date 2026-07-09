@@ -6,6 +6,7 @@ import utils
 import queue
 import const
 from utils import flatten_to_list
+from collections.abc import Iterable
 
 
 class Database:
@@ -20,25 +21,16 @@ class Database:
         print(classes)
 
         while len(classes) != 0:
-            print(len(classes))
+            # TODO resolve circluar / optimise control flow for large N
             current_type = classes.pop(0)
-            print(current_type)
-            time.sleep(0.1)
 
             if current_type not in dependency_map:
 
                 current_field_dependencies = get_dependencies(current_type)
                 dependency_map[current_type] = set(utils.flatten_to_list(current_field_dependencies.values()))
 
-            if issubclass(current_type, const.INHERIT_EXCEPTIONS):
-                if issubclass(current_type, enum.Enum):
-                    ...
-                else:
-                    resolved_dependencies.add(current_type)
-
             if not dependency_map[current_type].issubset(resolved_dependencies):
                 print(dependency_map[current_type], resolved_dependencies)
-                print(f"Appending {current_type}, {dependency_map[current_type]-resolved_dependencies}")
                 [classes.append(i) for i in dependency_map[current_type]-resolved_dependencies if i not in classes]
                 classes.append(current_type)
                 continue
@@ -63,6 +55,8 @@ def get_dependencies(object_type: typing.Type) -> dict[str, list[typing.Type]]:
     pairings = []
     q = queue.Queue()
     [q.put(i) for i in typing.get_type_hints(object_type).items()]
+    if issubclass(object_type, enum.Enum):
+        [q.put((k, type(v.value))) for k, v in object_type._member_map_.items()]
     while not q.empty():
         s, x = q.get()
         if isinstance(x, type):
@@ -81,32 +75,29 @@ def get_dependencies(object_type: typing.Type) -> dict[str, list[typing.Type]]:
 
     return fields
 
-def get_table_contents_from_map(mapping: dict[str, list[typing.Type]]) -> \
-        tuple[str, list[typing.Type]]:
-    strings : list[str] = list()
-    for key, value in mapping:
-        values = len(value)
+def get_table_contents_from_type(object_type: typing.Type) -> str:
+    if issubclass(object_type, enum.Enum):
+        # create switch number to different fixed values?
+        ...
+        return
 
-        assert values != 0
-
-        optional = ...
-
-        if values == 1:
-            if value in const.BASIC_TYPES:
-                # add raw field
-                ...
-            else:
-                # add id field
-                ...
-        else:
-            # add the class switch selector thing
+    prior_tables: list[str] = list()
+    subquery = f"CREATE TABLE {object_type.__module__}_{object_type.__name__} (\n"
+    table_links: dict[str, str] = {}
+    for name, type in typing.get_type_hints(object_type).items():
+        # should be abstracted to another method
+        # would make the random insertion of union types much easier
+        if issubclass(type, Iterable):
+            # handle iterable code
             ...
 
-    return "", []
+        if issubclass(type, enum.Enum):
+            # handle subclass code
+
 
 def main():
     import modeldata
-    Database([modeldata])
+    get_table_contents_from_type(modeldata.ModelResponse)
 
 if __name__ == "__main__":
     main()
