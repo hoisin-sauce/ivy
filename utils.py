@@ -10,6 +10,9 @@ def safe_is_subclass(obj: Any, class_or_tuple: typing.Type|tuple[typing.Type]) -
 def flatten_to_list[T](lst: Iterable[Iterable[T]]) -> list[T]:
     return list(chain(*lst))
 
+def flatten_to_set[T](lst: Iterable[Iterable[T]]) -> set[T]:
+    return set(chain(*lst))
+
 def public_dir(obj: Any) -> list[str]:
     return [i for i in dir(obj) if not i.startswith("__")]
 
