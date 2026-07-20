@@ -35,7 +35,8 @@ class Database:
 
     def _introduce_backwards_dependencies(self) -> None:
         for datatype, datatype_information in self.datatype_map.items():
-            map(lambda x: self.datatype_map[x].depended_by.add(datatype), datatype_information.dependencies)
+            for dependency in datatype_information.dependencies:
+                self.datatype_map[dependency].depended_by.add(datatype)
 
     def get_build_order(self) -> list[Type]:
         completable: list[Type] = [i for i in self.types if not self.datatype_map[i].remaining_dependencies]
@@ -46,12 +47,13 @@ class Database:
             build_order.append(processing)
 
             for class_type in self.datatype_map[processing].depended_by:
-                self.datatype_map[class_type].remaining_dependencies -= processing
+                self.datatype_map[class_type].remaining_dependencies -= {
+                    processing}
                 if not self.datatype_map[class_type].remaining_dependencies:
                     completable.append(class_type)
 
-        if uninitialised := set(build_order) - self.types:
-            failed_initialised_cause = {self.datatype_map[i].remaining_dependencies for i in uninitialised}
+        if uninitialised := self.types - set(build_order):
+            failed_initialised_cause = {i: self.datatype_map[i].remaining_dependencies for i in uninitialised}
             raise FailedDatabaseInitialisationError(f"Classes {uninitialised} could not be initialised due to {failed_initialised_cause} still remaining as dependencies")
 
         return build_order
