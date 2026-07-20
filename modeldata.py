@@ -6,6 +6,10 @@ from enum import Enum
 
 number: UnionType = float | int
 
+@dataclass
+class JSON:
+    content: str
+
 class ReasoningOptions(Enum):
     OFF = "off"
     LOW = "low"
@@ -37,7 +41,7 @@ class EphemeralMCP:
     server_label: str
     server_url: str
     allowed_tools: Optional[list[str]] = None
-    headers: Optional[dict[str, ...]] = None
+    headers: Optional[dict[str, JSON]] = None
     type: str = "ephemeral_mcp"
 
 @dataclass
@@ -75,7 +79,7 @@ class EphemeralMCPInfo:
 @dataclass
 class ToolCall:
     tool: str
-    arguments: dict[str, ...]
+    arguments: dict[str, JSON]
     output: str
     provider_info: PluginInfo | EphemeralMCPInfo
     type: str = "tool_call"
@@ -93,7 +97,7 @@ class InvalidToolName:
 @dataclass
 class InvalidToolArguments:
     tool_name: str
-    arguments: dict[str, ...]
+    arguments: dict[str, JSON]
     provider_info: PluginInfo | EphemeralMCPInfo
     type: str = "invalid_arguments"
 
