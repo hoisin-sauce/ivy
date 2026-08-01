@@ -10,7 +10,7 @@ def is_type(obj: Any):
     return isinstance(obj, type)
 
 def get_types_in_module(module: ModuleType) -> list[Type]:
-    return [_type for i in dir(module) if is_type(_type := getattr(module, i))]
+    return [_type for i in dir(module) if is_type(_type := getattr(module, i)) and _type.__module__ == module.__name__]
 
 def get_immediate_dependencies(class_type: Type) -> set[Type]:
     # We handle enums by checking the type of their child elements
@@ -28,21 +28,21 @@ def get_immediate_dependencies(class_type: Type) -> set[Type]:
 
 
 def resolve_type(class_type: typing.Union[types.UnionType, types.GenericAlias, Type, type]) -> Iterable[Type]:
-    match meta_type := type(class_type):
+    meta_type = type(class_type)
 
-        case types.UnionType | typing._UnionGenericAlias:
-            return utils.flatten_to_set(map(resolve_type, resolve_union_type(class_type)))
+    if meta_type ==  types.UnionType or meta_type == typing._UnionGenericAlias:
+        return utils.flatten_to_set(map(resolve_type, resolve_union_type(class_type)))
 
-        case types.GenericAlias:
-            return utils.flatten_to_set(map(resolve_type, resolve_generic_alias(class_type)))
+    if meta_type == types.GenericAlias:
+        return utils.flatten_to_set(map(resolve_type, resolve_generic_alias(class_type)))
 
-        case enum.EnumType:
-            return (class_type,)
+    if meta_type == enum.EnumType:
+        return (class_type,)
 
-        case _:
-            if meta_type == type:
-                return (class_type,)
-            raise NotImplementedError(f"Type {meta_type} has not been implemented")
+    if meta_type == type:
+        return (class_type,)
+
+    raise NotImplementedError(f"Type {meta_type} has not been implemented")
 
 def resolve_union_type(class_type: types.UnionType) -> Iterable[Type]:
     return typing.get_args(class_type)
