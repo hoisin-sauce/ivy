@@ -1,8 +1,7 @@
-import enum
+"""Stores constants being used for the database creation based on module types.
+"""
 
-class SQL(enum.Enum):
-    INTEGER = "INTEGER"
-
+# BASIC TYPES
 NONE_TYPE = type(None)
 
 BASIC_TYPES = {str, int, bool, float, NONE_TYPE}

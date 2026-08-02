@@ -1,10 +1,11 @@
+"""Stores datatypes modelling the structure of interacting with LMStudio requests
+"""
 # Datatypes for easy request handling
 from dataclasses import dataclass
-from types import UnionType
 from typing import Optional
 from enum import Enum
 
-number: UnionType = float | int
+number = float | int
 
 @dataclass
 class JSON:

@@ -19,3 +19,4 @@ def test_modeldata_table_initialisation():
 
 if __name__ == "__main__":
     test_modeldata_graph_initialisation()
+    test_modeldata_table_initialisation()
