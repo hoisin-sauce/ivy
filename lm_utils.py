@@ -19,7 +19,7 @@ def safe_is_subclass(obj: Any, class_or_tuple: typing.Type|tuple[typing.Type]) -
         Boolean representing if the object is a subclass of the
         provided class or one of the classes in the provided tuple
     """
-    return isinstance(obj, type) and issubclass(object, class_or_tuple)
+    return isinstance(obj, type) and issubclass(obj, class_or_tuple)
 
 def flatten_to_list[T](two_d_iterable: Iterable[Iterable[T]]) -> list[T]:
     """

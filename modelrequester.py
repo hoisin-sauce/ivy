@@ -1,3 +1,5 @@
+"""Rough implemenation/proof of concept on interactions with LM Studio
+"""
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from typing import Optional
@@ -6,7 +8,7 @@ import json
 import os
 from modeldata import ModelChatRequest, ModelResponse, Plugin, ToolCall, \
     Message
-import utils
+import lm_utils
 
 @dataclass
 class ModelRequester:
@@ -25,7 +27,7 @@ class ModelRequester:
             "Content-Type": "application/json"
         }
 
-        data = json.dumps(utils.object_to_dict(request))
+        data = json.dumps(lm_utils.object_to_dict(request))
 
         r = requests.post(url=self.url + "/api/v1/chat", headers=headers, data=data)
         return ModelResponse.from_json(r.json())
@@ -49,7 +51,7 @@ def main():
     requester: ModelRequester = ModelRequester()
 
     output = requester.send_request(request)
-    print(utils.object_to_dict(output))
+    print(lm_utils.object_to_dict(output))
 
 if __name__ == "__main__":
     main()

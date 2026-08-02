@@ -1,12 +1,11 @@
 """Utility module for dealing with type functionality not provided by typing or types.
 """
-import dataclasses
 import types
 import typing
 from typing import Any, Mapping
 from types import ModuleType, UnionType, GenericAlias
 from collections.abc import Iterable
-import utils
+import datalib.db_utils as db_utils
 import enum
 
 def is_type(obj: Any) -> bool:
@@ -63,7 +62,7 @@ def get_immediate_dependencies(class_type: type) -> set[type]:
     argument_types: Iterable[type | UnionType | GenericAlias] = \
         type_hints.values()
     try:
-        return utils.flatten_to_set(map(resolve_type, argument_types))
+        return db_utils.flatten_to_set(map(resolve_type, argument_types))
     except NotImplementedError as e:
         raise ExceptionGroup(
             f"Exception occurred whilst processing "
@@ -85,11 +84,11 @@ def resolve_type(datatype: typing.Union[types.UnionType, types.GenericAlias, typ
 
     if meta_type ==  types.UnionType or meta_type == typing._UnionGenericAlias:
         datatype: types.UnionType | typing._UnionGenericAlias
-        return utils.flatten_to_set(map(resolve_type, resolve_union_type(datatype)))
+        return db_utils.flatten_to_set(map(resolve_type, resolve_union_type(datatype)))
 
     if meta_type == types.GenericAlias:
         datatype: types.GenericAlias
-        return utils.flatten_to_set(map(resolve_type, resolve_generic_alias(datatype)))
+        return db_utils.flatten_to_set(map(resolve_type, resolve_generic_alias(datatype)))
 
     datatype: type
     # TODO double check that enums are being adequately decomposed
@@ -132,3 +131,58 @@ def resolve_generic_alias(datatype: types.GenericAlias) -> Iterable[type]:
         return typing.get_args(datatype)
 
     raise NotImplementedError(f"Type {alias.__name__} has not been implemented")
+
+def create_annotated_datatype(name: str, datatypes: Iterable[type] | Mapping[
+    str, type]) -> type:
+    """
+    Creates an annotated dummy datatype with annotations according to the
+    provided datatypes and optional labels.
+    Args:
+        name
+            Name of the dummy datatype
+        datatypes
+            Iterable of datatypes or Mapping of names to datatypes to be added to the annotated datatype
+
+    Returns:
+        A dummy datatype with the provided annotations
+
+        Example
+            create_annotated_datatype("IntegerStringPair", [int, str])
+                ->
+            class IntegerStringPair:
+                int: int
+                str: str
+    """
+
+    class Alias:
+        ...
+
+    if isinstance(datatypes, Mapping):
+        Alias.__annotations__ = {k: v for k, v in datatypes.items()}
+    else:
+        Alias.__annotations__ = {i: i for i in datatypes if
+                                 isinstance(i, tuple)}
+    Alias.__name__ = name
+
+    return Alias
+
+
+# noinspection type-hints
+def get_union_type(datatypes: list[type]):
+    """
+    Returns a type which is the union of the types provided.
+    Args:
+        datatypes:
+            The types to be unionised.
+    Returns:
+        A typing.Union object with all the required datatypes
+    """
+    if len(datatypes) == 1:
+        return datatypes[0]
+
+    base_type = typing.Union[datatypes[0], datatypes[1]]
+
+    for datatype in datatypes[2:]:
+        base_type = typing.Union[base_type, datatype]
+
+    return base_type
