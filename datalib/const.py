@@ -8,4 +8,3 @@ BASIC_TYPES = {str, int, bool, float, NONE_TYPE}
 BASIC_TYPE_MAPPINGS = ...
 
 # NAMING CONVENTIONS
-

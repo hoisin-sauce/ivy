@@ -1,7 +1,7 @@
 """Stores the datatypes used to represent different parts of the modelling system
 """
 from dataclasses import dataclass
-import datalib.typeprocessing as typeprocessing
+from datalib import type_processing
 from datalib import const
 
 # Graph
@@ -29,7 +29,7 @@ class DataType:
             to add the types that it is depended on by once all datatypes have
             been built so this is done at another point.
         """
-        dependencies: set[type] = typeprocessing.get_immediate_dependencies(class_type) - const.BASIC_TYPES
+        dependencies: set[type] = type_processing.get_immediate_dependencies(class_type) - const.BASIC_TYPES
         datatype: DataType = DataType(class_type, dependencies, dependencies, set())
         return datatype
 

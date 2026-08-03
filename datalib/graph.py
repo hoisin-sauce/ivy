@@ -2,7 +2,7 @@ from typing import Type
 from types import ModuleType
 from collections.abc import Iterable
 import datalib.db_utils as db_utils
-import datalib.typeprocessing as typeprocessing
+from datalib import type_processing
 from datalib.datatypes import DataType
 
 class FailedDatabaseInitialisationError(Exception):
@@ -19,7 +19,7 @@ class ClassDependencyGraph:
     """
     def __init__(self, modules: Iterable[ModuleType]) -> None:
         types_by_module: Iterable[Iterable[type]] = list(map(
-            typeprocessing.get_types_in_module, modules))
+            type_processing.get_types_in_module, modules))
         self.types: set[type] = db_utils.flatten_to_set(types_by_module)
         self.datatype_map: dict[type, DataType] = dict()
         self._initialise_datatype_map()

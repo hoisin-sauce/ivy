@@ -6,7 +6,7 @@ import typing
 from typing import Optional
 from collections.abc import Iterable
 import datalib.const as const
-from datalib import typeprocessing
+from datalib import type_processing
 from datalib.graph import ClassDependencyGraph
 from datalib.datatypes import Table, PrimaryKey, ForeignKey, Field, IterableField, \
     TableField
@@ -142,29 +142,19 @@ class TableStructure:
         """
         possible_types = typing.get_args(field_type)
 
-        # TODO refactor into separate function for readability
         # If the field contains a NoneType value then it is optional
         # We need to return the resolved inner field with the is_optional flag
         # Set to true
         if const.NONE_TYPE in possible_types:
-            possible_types = list(possible_types)
-            possible_types.remove(const.NONE_TYPE)
-
-            field_link, table = self.get_field(field_name,
-                                               typeprocessing.get_union_type(possible_types),
-                                               parent)
-            if field_link:
-                field_link.is_optional = True
-
-            return field_link, table
+            return self.get_optional_field(field_name, possible_types, parent)
 
         # Set the name of the type to allow for the table to be named by the
         # add_table method
         union_alias_attributes = {"union_member_number": int}
         union_alias_name = self.namer.name_union_selector(parent, field_name)
 
-        union_alias = typeprocessing.create_annotated_datatype(union_alias_name,
-                                                union_alias_attributes)
+        union_alias = type_processing.create_annotated_datatype(union_alias_name,
+                                                                union_alias_attributes)
 
         table_reference = self.add_table(union_alias)
 
@@ -173,7 +163,7 @@ class TableStructure:
         number_mapping: dict[int, str] = dict()
 
         for i, datatype in enumerate(possible_types):
-            cls = typeprocessing.create_annotated_datatype(
+            cls = type_processing.create_annotated_datatype(
                 self.namer.name_union_member(parent, field_name, datatype),
                 [datatype, union_alias])
             self.add_table(cls)
@@ -181,6 +171,19 @@ class TableStructure:
 
         # TODO store number mapping somewhere appropriate
         return ForeignKey(table_reference), None
+
+    def get_optional_field(self, field_name: str, possible_types: Iterable[type], parent: Table) -> tuple[TableField, Optional[Table]]:
+        possible_types = list(possible_types)
+        possible_types.remove(const.NONE_TYPE)
+
+        field_link, table = self.get_field(field_name,
+                                           type_processing.get_union_type(
+                                               possible_types),
+                                           parent)
+        if field_link:
+            field_link.is_optional = True
+
+        return field_link, table
 
     def get_enum_field(self, field_name: str, field_type) -> ForeignKey:
         """
@@ -199,8 +202,8 @@ class TableStructure:
 
         enum_alias_attributes = {"member_name": str}
 
-        enum_alias = typeprocessing.create_annotated_datatype(self.namer.name_enum_alias(field_name),
-                                               enum_alias_attributes)
+        enum_alias = type_processing.create_annotated_datatype(self.namer.name_enum_alias(field_name),
+                                                               enum_alias_attributes)
 
         enum_table = self.add_table(enum_alias)
         # noinspection protected-member
@@ -234,7 +237,7 @@ class TableStructure:
         iterator_attributes = {f"option_{i}": v for i, v in
                                enumerate(iterator_types)}
 
-        iter_member_alias = typeprocessing.create_annotated_datatype(
+        iter_member_alias = type_processing.create_annotated_datatype(
             self.namer.name_iterator_inner(parent, field_name),
             iterator_attributes
         )
