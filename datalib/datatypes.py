@@ -3,6 +3,9 @@
 from dataclasses import dataclass
 from datalib import type_processing
 from datalib import const
+from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
 
 # Graph
 
@@ -73,3 +76,14 @@ class Table:
     """
     name: str
     fields: list[TableField]
+
+# Database
+
+class Query(metaclass=ABCMeta):
+    @abstractmethod
+    def get_value(self):
+        ...
+
+    @abstractmethod
+    def where(self, condition_checker: Callable[..., bool]) -> "Query":
+        ...

@@ -27,6 +27,9 @@ class TableStructure:
         for datatype in base_table_order:
             self.add_table(datatype)
 
+    def get_tables_in_order(self) -> list[Table]:
+        return self.tables
+
     def add_table(self, datatype: type) -> Table:
         """
         Add a table to the data structure representing the provided datatype
