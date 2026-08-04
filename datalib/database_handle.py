@@ -5,11 +5,13 @@ from typing import Any
 
 import datalib.schema
 from datalib.datatypes import Query
+import datalib.naming
 
 
 @dataclass
 class DatabaseHandle(metaclass=ABCMeta):
     schema: datalib.schema.TableStructure
+    field_namer: datalib.naming.FieldNamer
 
     def __post_init__(self) -> None:
         self.initialise_database()

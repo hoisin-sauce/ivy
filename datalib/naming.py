@@ -7,9 +7,13 @@ from datalib.datatypes import Table
 
 
 class Namer(metaclass=ABCMeta):
+    ...
+
+class TableNamer(Namer, metaclass=ABCMeta):
     @abstractmethod
     def name_table_with_module(self, datatype: type) -> str:
         ...
+
     @abstractmethod
     def name_table_without_module(self, datatype: type) -> str:
         ...
@@ -23,7 +27,8 @@ class Namer(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def name_union_member(self, parent: Table, field_name: str, datatype: type) -> str:
+    def name_union_member(self, parent: Table, field_name: str,
+                          datatype: type) -> str:
         ...
 
     @abstractmethod
@@ -35,10 +40,19 @@ class Namer(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def name_iterator_link_table(self, parent: Table, field_name: str, datatype:type) -> str:
+    def name_iterator_link_table(self, parent: Table, field_name: str,
+                                 datatype: type) -> str:
         ...
 
-class StandardTableNamer(Namer):
+    @abstractmethod
+    def name_iterator_field_to_parent(self) -> str:
+        ...
+
+    @abstractmethod
+    def name_iterator_field_to_data(self) -> str:
+        ...
+
+class StandardTableNamer(TableNamer):
     def name_table_with_module(self, datatype: type) -> str:
         return datatype.__module__ + "__" + datatype.__name__
 
@@ -62,3 +76,20 @@ class StandardTableNamer(Namer):
 
     def name_iterator_link_table(self, parent: Table, field_name: str, datatype: type) -> str:
         return f"{parent.name}_{field_name}__iter_link__{datatype.__module__}_{datatype.__name__}"
+
+    def name_iterator_field_to_parent(self) -> str:
+        return "parent_field"
+
+    def name_iterator_field_to_data(self) -> str:
+        return "field_to_data"
+
+class FieldNamer(Namer, metaclass=ABCMeta):
+    @abstractmethod
+    def name_primary_key(self, table_name: Table) -> str:
+        ...
+
+    @abstractmethod
+    def name_foreign_key_field(self, table_to: Table) -> str:
+        ...
+
+# TODO refactor so that field name is included in the foreign key derivation

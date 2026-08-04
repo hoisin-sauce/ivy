@@ -10,7 +10,7 @@ from datalib import type_processing
 from datalib.graph import ClassDependencyGraph
 from datalib.datatypes import Table, PrimaryKey, ForeignKey, Field, IterableField, \
     TableField
-from datalib.naming import Namer
+from datalib.naming import TableNamer
 
 class TableStructure:
     """
@@ -18,7 +18,7 @@ class TableStructure:
     tables provided by ClassDependencyGraph object supplied to it
     """
 
-    def __init__(self, graph: ClassDependencyGraph, namer: Namer):
+    def __init__(self, graph: ClassDependencyGraph, namer: TableNamer):
         self.tables: list[Table] = list()
         self.enum_lookups: dict[str, dict] = dict()
         self.table_lookups: dict[type, Table] = dict()
@@ -127,7 +127,7 @@ class TableStructure:
 
         # A field which represents another class
         table_referenced = self.table_lookups[field_type]
-        return ForeignKey(table_referenced), None
+        return ForeignKey(to=table_referenced, name=field_name), None
 
     def get_union_field(self, field_name: str, field_type, parent: Table) -> \
         tuple[TableField, Optional[Table]]:
@@ -173,7 +173,7 @@ class TableStructure:
             number_mapping[i] = datatype.__name__
 
         # TODO store number mapping somewhere appropriate
-        return ForeignKey(table_reference), None
+        return ForeignKey(to=table_reference, name=field_name), None
 
     def get_optional_field(self, field_name: str, possible_types: Iterable[type], parent: Table) -> tuple[TableField, Optional[Table]]:
         possible_types = list(possible_types)
@@ -212,7 +212,7 @@ class TableStructure:
         # noinspection protected-member
         self.enum_lookups[field_name] = field_type._member_map_
 
-        return ForeignKey(enum_table)
+        return ForeignKey(to=enum_table, name=field_name)
 
     def get_iter_field(self, field_name: str, field_type: type[Iterable],
                        parent: Table) -> tuple[IterableField, Table]:
@@ -249,7 +249,8 @@ class TableStructure:
 
         many_to_many = Table(
             name=self.namer.name_iterator_link_table(parent, field_name, field_type),
-            fields=[ForeignKey(parent), ForeignKey(table_to_reference)])
+            fields=[ForeignKey(to=parent, name=self.namer.name_iterator_field_to_parent()),
+                    ForeignKey(to=table_to_reference, name=self.namer.name_iterator_field_to_data()),])
 
         return IterableField(field_name), many_to_many
 

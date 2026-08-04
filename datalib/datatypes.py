@@ -6,6 +6,7 @@ from datalib import const
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+import datalib.database_constraint
 
 # Graph
 
@@ -55,6 +56,7 @@ class ForeignKey(TableField):
     Represents a foreign key to another table
     """
     to: "Table"
+    name: str
 
 class PrimaryKey(TableField):
     """
