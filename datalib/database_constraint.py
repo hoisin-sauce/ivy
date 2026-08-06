@@ -36,6 +36,7 @@ class MandatoryFieldConstraint(FieldConstraint):
     def __repr__(self) -> str:
         return "NOT NULL"
 
+
 @dataclass
 class ForeignKeyConstraint(TableConstraint):
     field_name: str
@@ -47,6 +48,13 @@ class ForeignKeyConstraint(TableConstraint):
                 f"REFERENCES "
                 f"{self.table_name}({self.table_primary_key_field_name})")
 
-class PrimaryKeyResolver:
+class PrimaryKeyResolver(metaclass=ABCMeta):
+    key_type: type
     def get_primary_key_type(self) -> type:
-        ...
+        return self.key_type
+
+class StandardPrimaryKeyResolver(PrimaryKeyResolver):
+    key_type = int
+
+class SQLiteDatabaseConnection(metaclass=ABCMeta):
+    ...

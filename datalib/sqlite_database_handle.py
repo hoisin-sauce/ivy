@@ -7,16 +7,15 @@ from typing import Any
 
 from datalib.datatypes import (Table, Query, TableField, PrimaryKey, ForeignKey,
                                IterableField, Field)
-from datalib.database_constraint import FieldConstraint, DatabaseConstraint, \
-    ForeignKeyConstraint, MandatoryFieldConstraint, PrimaryKeyConstraint, \
-    TableConstraint, PrimaryKeyResolver
+from datalib.database_constraint import *
 import datalib.database_constraint as database_constraint
 
 
 def get_table_create_start(table_name: str) -> str:
     return f"CREATE TABLE {table_name} (\n"
-# noinspection unused-parameter
+
 def get_table_create_end(table_name: str) -> str:
+    del table_name
     return ");"
 
 def get_table_field_create(field_name: str, field_type: str,
@@ -32,8 +31,9 @@ class SQliteDatabaseHandle(DatabaseHandle):
 
     def initialise_database(self) -> None:
         creation_order = self.schema.get_tables_in_order()
+        print("Initialising database...")
         for table in creation_order:
-            self.get_table_create_statement(table)
+            print(self.get_table_create_statement(table))
 
     def get_table_create_statement(self, table: Table) -> str:
         database_creation_string = get_table_create_start(table.name)

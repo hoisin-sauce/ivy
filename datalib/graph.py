@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Type
 from types import ModuleType
 from collections.abc import Iterable
@@ -79,7 +80,9 @@ class ClassDependencyGraph:
         while completable:
             processing: Type = completable.pop(0)
 
-            build_order.append(processing)
+            # TODO make enum tables option should not exist
+            if not db_utils.safe_is_subclass(processing, Enum):
+                build_order.append(processing)
 
             for class_type in self.datatype_map[processing].depended_by:
                 self.datatype_map[class_type].remaining_dependencies -= {
@@ -87,7 +90,8 @@ class ClassDependencyGraph:
                 if not self.datatype_map[class_type].remaining_dependencies:
                     completable.append(class_type)
 
-        if uninitialised := self.types - set(build_order):
+        without_enums = {i for i in self.types if not db_utils.safe_is_subclass(i, Enum)}
+        if uninitialised :=  without_enums - set(build_order):
             failed_initialised_cause = {i: self.datatype_map[i].remaining_dependencies for i in uninitialised}
             raise FailedDatabaseInitialisationError(f"Classes {uninitialised} could not be initialised due to {failed_initialised_cause} still remaining as dependencies")
 

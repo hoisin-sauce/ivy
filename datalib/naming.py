@@ -5,6 +5,7 @@ TODO approach should be more planned out
 from abc import abstractmethod, ABCMeta
 from datalib.datatypes import Table
 
+# HOW TF DO WE GET DATALIB OUT OF THE NAMING STACK
 
 class Namer(metaclass=ABCMeta):
     ...
@@ -53,8 +54,13 @@ class TableNamer(Namer, metaclass=ABCMeta):
         ...
 
 class StandardTableNamer(TableNamer):
+    def sanitise_module_name(self, module_name: str) -> str:
+        del self
+        return module_name.replace(".", "_")
+
     def name_table_with_module(self, datatype: type) -> str:
-        return datatype.__module__ + "__" + datatype.__name__
+        return (self.sanitise_module_name(datatype.__module__) + "__" +
+                datatype.__name__)
 
     def name_table_without_module(self, datatype: type) -> str:
         return datatype.__name__
@@ -72,7 +78,7 @@ class StandardTableNamer(TableNamer):
         return "__enum__" + field_name
 
     def name_iterator_inner(self, parent: Table, field_name: str) -> str:
-        return parent.name + field_name + "__iter_inner__"
+        return parent.name + "__" + field_name + "__iter_inner__"
 
     def name_iterator_link_table(self, parent: Table, field_name: str, datatype: type) -> str:
         return f"{parent.name}_{field_name}__iter_link__{datatype.__module__}_{datatype.__name__}"
@@ -85,11 +91,16 @@ class StandardTableNamer(TableNamer):
 
 class FieldNamer(Namer, metaclass=ABCMeta):
     @abstractmethod
-    def name_primary_key(self, table_name: Table) -> str:
+    def name_primary_key(self, table: Table) -> str:
         ...
 
     @abstractmethod
     def name_foreign_key_field(self, table_to: Table) -> str:
         ...
 
-# TODO refactor so that field name is included in the foreign key derivation
+class StandardFieldNamer(FieldNamer):
+    def name_primary_key(self, table: Table) -> str:
+        return f"{table.name}id"
+
+    def name_foreign_key_field(self, table_to: Table) -> str:
+        return self.name_primary_key(table_to)

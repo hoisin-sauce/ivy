@@ -20,8 +20,9 @@ class TableStructure:
 
     def __init__(self, graph: ClassDependencyGraph, namer: TableNamer):
         self.tables: list[Table] = list()
-        self.enum_lookups: dict[str, dict] = dict()
+        self.enum_lookups: dict[tuple[type, str], dict] = dict()
         self.table_lookups: dict[type, Table] = dict()
+        self.backwards_table_lookups: dict[Table, type] = dict()
         self.namer = namer
         base_table_order = graph.get_build_order()
         for datatype in base_table_order:
@@ -43,7 +44,7 @@ class TableStructure:
         tables_after: list[Table] = list()
 
         # Name the table whilst trying to avoid adding this modules name to it
-        if datatype.__module__ != TableStructure.__module__:
+        if datatype.__module__ != type_processing.__name__:
             name = self.namer.name_table_with_module(datatype)
         else:
             name = self.namer.name_table_without_module(datatype)
@@ -52,6 +53,8 @@ class TableStructure:
             name=name,
             fields=[PrimaryKey()]
         )
+
+        self.backwards_table_lookups[table] = datatype
 
         # Update table the required fields, making use of recursion to add
         # References from tables used to normalise more complex typehints
@@ -112,7 +115,7 @@ class TableStructure:
 
         # A field which can only express one of a few fixed values
         if isinstance(field_type, type) and issubclass(field_type, enum.Enum):
-            return self.get_enum_field(field_name, field_type), None
+            return self.get_enum_field(field_name, field_type, parent), None
 
         # A field which represents an iterable object
         # noinspection bad-argument-type
@@ -188,7 +191,7 @@ class TableStructure:
 
         return field_link, table
 
-    def get_enum_field(self, field_name: str, field_type) -> ForeignKey:
+    def get_enum_field(self, field_name: str, field_type, parent: Table) -> ForeignKey:
         """
         Handles creating a field for a type which is an Enum of multiple types
         Args:
@@ -196,6 +199,8 @@ class TableStructure:
                 The name of the field to be added.
             field_type
                 The type of the data in field to be added.
+            parent
+                The parent table that the field will be added to.
 
         Returns:
             A foreign key to the table created to resolve the dependencies in the enum
@@ -206,11 +211,14 @@ class TableStructure:
         enum_alias_attributes = {"member_name": str}
 
         enum_alias = type_processing.create_annotated_datatype(self.namer.name_enum_alias(field_name),
-                                                               enum_alias_attributes)
+                                                               enum_alias_attributes,
+                                                               module=field_type.__module__)
 
         enum_table = self.add_table(enum_alias)
-        # noinspection protected-member
-        self.enum_lookups[field_name] = field_type._member_map_
+        # noinspection protected-members
+        self.enum_lookups[
+            (self.backwards_table_lookups[parent] , field_name)] \
+            = field_type._member_map_
 
         return ForeignKey(to=enum_table, name=field_name)
 

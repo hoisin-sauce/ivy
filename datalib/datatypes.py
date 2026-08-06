@@ -79,6 +79,9 @@ class Table:
     name: str
     fields: list[TableField]
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
 # Database
 
 class Query(metaclass=ABCMeta):

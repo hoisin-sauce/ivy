@@ -2,7 +2,7 @@
 """
 import types
 import typing
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 from types import ModuleType, UnionType, GenericAlias
 from collections.abc import Iterable
 import datalib.db_utils as db_utils
@@ -133,7 +133,7 @@ def resolve_generic_alias(datatype: types.GenericAlias) -> Iterable[type]:
     raise NotImplementedError(f"Type {alias.__name__} has not been implemented")
 
 def create_annotated_datatype(name: str, datatypes: Iterable[type] | Mapping[
-    str, type]) -> type:
+    str, type], module: Optional[str]=None) -> type:
     """
     Creates an annotated dummy datatype with annotations according to the
     provided datatypes and optional labels.
@@ -142,6 +142,8 @@ def create_annotated_datatype(name: str, datatypes: Iterable[type] | Mapping[
             Name of the dummy datatype
         datatypes
             Iterable of datatypes or Mapping of names to datatypes to be added to the annotated datatype
+        module
+            Optional module name for the class
 
     Returns:
         A dummy datatype with the provided annotations
@@ -163,6 +165,9 @@ def create_annotated_datatype(name: str, datatypes: Iterable[type] | Mapping[
         Alias.__annotations__ = {i: i for i in datatypes if
                                  isinstance(i, tuple)}
     Alias.__name__ = name
+
+    if module is not None:
+        Alias.__module__ = module
 
     return Alias
 
