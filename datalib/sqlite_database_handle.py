@@ -31,9 +31,12 @@ class SQliteDatabaseHandle(DatabaseHandle):
 
     def initialise_database(self) -> None:
         creation_order = self.schema.get_tables_in_order()
-        print("Initialising database...")
+        table_create_statements: list[str] = list()
         for table in creation_order:
-            print(self.get_table_create_statement(table))
+            table_create_statements.append(self.get_table_create_statement(table))
+
+        schema_string = "\n".join(table_create_statements)
+        print(schema_string)
 
     def get_table_create_statement(self, table: Table) -> str:
         database_creation_string = get_table_create_start(table.name)

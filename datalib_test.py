@@ -1,5 +1,3 @@
-from pprint import pp
-
 from datalib import schema, sqlite_database_handle
 from datalib.database_constraint import StandardPrimaryKeyResolver
 from datalib.naming import StandardTableNamer, StandardFieldNamer
