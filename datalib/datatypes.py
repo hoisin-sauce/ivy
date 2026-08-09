@@ -84,13 +84,5 @@ class Table:
 
 # Database
 
-class Query(metaclass=ABCMeta):
-    @abstractmethod
-    def get_value(self):
-        ...
-
-    @abstractmethod
-    def where(self, condition_checker: Callable[..., bool]) -> "Query":
-        ...
 
 __all__ = ["DataType", "TableField", "Field", "PrimaryKey", "IterableField", "Table", "ForeignKey", "Query"]

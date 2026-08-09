@@ -2,6 +2,8 @@ from datalib import schema, sqlite_database_handle
 from datalib.database_constraint import StandardPrimaryKeyResolver
 from datalib.naming import StandardTableNamer, StandardFieldNamer
 import modeldata
+from datalib.queries import NoDatabaseInterface
+
 
 def test_modeldata_graph_initialisation():
     db = schema.ClassDependencyGraph((modeldata,))
@@ -19,30 +21,30 @@ def test_optional_foreign():
     from test.datalib import test_data_foreign as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
-    database = sqlite_database_handle.SQliteDatabaseHandle(
-        table_structure, StandardFieldNamer(), StandardPrimaryKeyResolver())
+    database = sqlite_database_handle.SQLDatabaseManager(
+        table_structure, StandardFieldNamer(), NoDatabaseInterface(), StandardPrimaryKeyResolver())
 
 def test_enum():
     from test.datalib import test_data_enum as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
-    database = sqlite_database_handle.SQliteDatabaseHandle(
-        table_structure, StandardFieldNamer(), StandardPrimaryKeyResolver()
+    database = sqlite_database_handle.SQLDatabaseManager(
+        table_structure, StandardFieldNamer(), NoDatabaseInterface(), StandardPrimaryKeyResolver()
     )
 
 def test_iter():
     from test.datalib import test_data_iter as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
-    database = sqlite_database_handle.SQliteDatabaseHandle(
-        table_structure, StandardFieldNamer(), StandardPrimaryKeyResolver()
+    database = sqlite_database_handle.SQLDatabaseManager(
+        table_structure, StandardFieldNamer(), NoDatabaseInterface(), StandardPrimaryKeyResolver()
     )
 
 def test_modeldata_table_initialisation():
     db = schema.ClassDependencyGraph((modeldata,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
-    database = sqlite_database_handle.SQliteDatabaseHandle(
-        table_structure, StandardFieldNamer(), StandardPrimaryKeyResolver())
+    database = sqlite_database_handle.SQLDatabaseManager(
+        table_structure, StandardFieldNamer(), NoDatabaseInterface(), StandardPrimaryKeyResolver())
 
 if __name__ == "__main__":
     test_modeldata_graph_initialisation()

@@ -4,16 +4,18 @@ from dataclasses import dataclass
 from typing import Any
 
 import datalib.schema
-from datalib.datatypes import Query
 import datalib.naming
+from datalib.queries import DatabaseInterface, Query
 
 
 @dataclass
-class DatabaseHandle(metaclass=ABCMeta):
+class DatabaseManager[DatabaseType](metaclass=ABCMeta):
     schema: datalib.schema.TableStructure
     field_namer: datalib.naming.FieldNamer
+    database_interface: DatabaseInterface[DatabaseType]
 
     def __post_init__(self) -> None:
+        # Needs more complex logic to verify that database is created, no changes etc.
         self.initialise_database()
 
     @abstractmethod
@@ -21,7 +23,7 @@ class DatabaseHandle(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def select(self, datatype: Iterable[type]) -> Query:
+    def select[T](self, datatype: T) -> Query[T]:
         ...
 
     @abstractmethod
@@ -30,5 +32,5 @@ class DatabaseHandle(metaclass=ABCMeta):
 
 class QueryExecutor(metaclass=ABCMeta):
     @abstractmethod
-    def execute(self, query: Query, database: DatabaseHandle) -> Any:
+    def execute(self, query: Query, database: DatabaseManager) -> Any:
         ...

@@ -5,7 +5,6 @@ TODO approach should be more planned out
 from abc import abstractmethod, ABCMeta
 from datalib.datatypes import Table
 
-# HOW TF DO WE GET DATALIB OUT OF THE NAMING STACK
 
 class Namer(metaclass=ABCMeta):
     ...

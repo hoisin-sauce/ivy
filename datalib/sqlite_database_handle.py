@@ -2,11 +2,13 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 import datalib.const as const
-from datalib.database_handle import DatabaseHandle
+from datalib.database_handle import DatabaseManager
 from typing import Any
 
-from datalib.datatypes import (Table, Query, TableField, PrimaryKey, ForeignKey,
+from datalib.database_types import SQLiteString
+from datalib.datatypes import (Table, TableField, PrimaryKey, ForeignKey,
                                IterableField, Field)
+from datalib.queries import Query
 from datalib.database_constraint import *
 import datalib.database_constraint as database_constraint
 
@@ -26,7 +28,7 @@ def get_table_constraint_create(constraint: TableConstraint) -> str:
     return f"\t{constraint},\n"
 
 @dataclass
-class SQliteDatabaseHandle(DatabaseHandle):
+class SQLDatabaseManager(DatabaseManager[SQLiteString]):
     primary_key_handler: PrimaryKeyResolver
 
     def initialise_database(self) -> None:
@@ -112,8 +114,8 @@ class SQliteDatabaseHandle(DatabaseHandle):
 
         raise NotImplementedError("Field type not supported for Sqlite database")
 
-    def select(self, datatype: Iterable[type]) -> Query:
-        ...
+    def select[T](self, datatype: T) -> Query[T]:
+        return Query()
 
     def insert(self, objects: Iterable[Any]) -> None:
         ...
