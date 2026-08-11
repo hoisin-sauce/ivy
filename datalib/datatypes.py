@@ -85,4 +85,4 @@ class Table:
 # Database
 
 
-__all__ = ["DataType", "TableField", "Field", "PrimaryKey", "IterableField", "Table", "ForeignKey", "Query"]
+__all__ = ["DataType", "TableField", "Field", "PrimaryKey", "IterableField", "Table", "ForeignKey"]

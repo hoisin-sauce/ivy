@@ -2,15 +2,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 import datalib.const as const
-from datalib.database_handle import DatabaseManager
-from typing import Any
+from datalib.abstract_database_components import SchemaTranslator, QueryToBeResolved
 
 from datalib.database_types import SQLiteString
 from datalib.datatypes import (Table, TableField, PrimaryKey, ForeignKey,
                                IterableField, Field)
-from datalib.queries import Query
+from datalib.naming import FieldNamer
 from datalib.database_constraint import *
 import datalib.database_constraint as database_constraint
+from datalib.schema import TableStructure
 
 
 def get_table_create_start(table_name: str) -> str:
@@ -28,17 +28,31 @@ def get_table_constraint_create(constraint: TableConstraint) -> str:
     return f"\t{constraint},\n"
 
 @dataclass
-class SQLDatabaseManager(DatabaseManager[SQLiteString]):
+class SQLiteSchemaTranslator(SchemaTranslator[SQLiteString]):
     primary_key_handler: PrimaryKeyResolver
+    field_namer: FieldNamer
 
-    def initialise_database(self) -> None:
+    def translate_schema(self, schema: TableStructure) -> QueryToBeResolved[None, SQLiteString]:
+        return SQLiteTranslatedSchema(
+            schema=schema,
+            primary_key_handler=self.primary_key_handler,
+            field_namer=self.field_namer,
+        ).get_query()
+
+@dataclass
+class SQLiteTranslatedSchema:
+    primary_key_handler: PrimaryKeyResolver
+    field_namer: FieldNamer
+    schema: TableStructure
+
+    def get_query(self) -> QueryToBeResolved[None, SQLiteString]:
         creation_order = self.schema.get_tables_in_order()
         table_create_statements: list[str] = list()
         for table in creation_order:
             table_create_statements.append(self.get_table_create_statement(table))
 
         schema_string = "\n".join(table_create_statements)
-        print(schema_string)
+        return QueryToBeResolved(SQLiteString(schema_string))
 
     def get_table_create_statement(self, table: Table) -> str:
         database_creation_string = get_table_create_start(table.name)
@@ -113,9 +127,3 @@ class SQLDatabaseManager(DatabaseManager[SQLiteString]):
             ]
 
         raise NotImplementedError("Field type not supported for Sqlite database")
-
-    def select[T](self, datatype: T) -> Query[T]:
-        return Query()
-
-    def insert(self, objects: Iterable[Any]) -> None:
-        ...

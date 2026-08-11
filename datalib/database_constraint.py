@@ -56,9 +56,6 @@ class PrimaryKeyResolver(metaclass=ABCMeta):
 class StandardPrimaryKeyResolver(PrimaryKeyResolver):
     key_type = int
 
-class SQLiteDatabaseConnection(metaclass=ABCMeta):
-    ...
-
 __all__ = [
     "DatabaseConstraint", "FieldConstraint", "TableConstraint", "PrimaryKeyConstraint", "MandatoryFieldConstraint",
-    "ForeignKeyConstraint", "PrimaryKeyResolver", "StandardPrimaryKeyResolver", "SQLiteDatabaseConnection"]
+    "ForeignKeyConstraint", "PrimaryKeyResolver", "StandardPrimaryKeyResolver"]

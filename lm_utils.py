@@ -119,7 +119,7 @@ class Scheduler[A, B]:
         request_queue: Queue of requests to be processed
     """
     process: Callable[[A], B]
-    request_queue: queue.Queue[Request[A, B]] = queue.Queue()
+    request_queue: queue.Queue[Request[A, B]]
 
     def __post_init__(self) -> None:
         """

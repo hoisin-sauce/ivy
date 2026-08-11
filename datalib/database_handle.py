@@ -1,36 +1,45 @@
-from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable, Callable
-from dataclasses import dataclass
-from typing import Any
+from abc import ABCMeta
+from collections.abc import Iterable
+from typing import Any, Optional, Generator
 
 import datalib.schema
 import datalib.naming
-from datalib.queries import DatabaseInterface, Query
+from datalib.queries import Query
+from datalib.abstract_database_components import QueryTranslator, DatabaseRequestManger, \
+    QueryToBeResolved, InsertionTranslator, SchemaTranslator
 
 
-@dataclass
-class DatabaseManager[DatabaseType](metaclass=ABCMeta):
+class DatabaseManager[DatabaseInteractionType](metaclass=ABCMeta):
     schema: datalib.schema.TableStructure
     field_namer: datalib.naming.FieldNamer
-    database_interface: DatabaseInterface[DatabaseType]
+    query_resolver: QueryTranslator[DatabaseInteractionType]
+    insertion_translator: InsertionTranslator[DatabaseInteractionType]
+    database_request_manager: DatabaseRequestManger[DatabaseInteractionType]
+    schema_translator: SchemaTranslator[DatabaseInteractionType]
 
     def __post_init__(self) -> None:
-        # Needs more complex logic to verify that database is created, no changes etc.
         self.initialise_database()
 
-    @abstractmethod
     def initialise_database(self) -> None:
         ...
 
-    @abstractmethod
-    def select[T](self, datatype: T) -> Query[T]:
-        ...
+    def select[T](self, datatype: type[T]) -> Query[T]:
+        return Query(datatype, self.execute_query)
 
-    @abstractmethod
-    def insert(self, objects: Iterable[Any]) -> None:
-        ...
+    # TODO implement better failure detection
+    def insert(self, objects: Iterable[Any] | Any) -> Optional[bool]:
+        if isinstance(objects, Iterable):
+            for obj in objects:
+                self.insert_single(obj)
+            return True
 
-class QueryExecutor(metaclass=ABCMeta):
-    @abstractmethod
-    def execute(self, query: Query, database: DatabaseManager) -> Any:
-        ...
+        self.insert_single(objects)
+        return True
+
+    def execute_query[T](self, query: Query[T]) -> Generator[T]:
+        query_representation: QueryToBeResolved[T, DatabaseInteractionType] = self.query_resolver.translate_query(query)
+        return self.database_request_manager.execute_query(query_representation)
+
+    def insert_single(self, obj: Any):
+        insertion_representation: DatabaseInteractionType = self.insertion_translator.translate_insertion(obj)
+        return self.database_request_manager.execute_query(insertion_representation)
