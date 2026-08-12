@@ -1,9 +1,7 @@
 from datalib import schema, sqlite_schema_translator
 from datalib.database_constraint import StandardPrimaryKeyResolver
-from datalib.naming import StandardTableNamer, StandardFieldNamer
+from datalib.naming import StandardTableNamer
 import modeldata
-from datalib.queries import Query, QueryBundle
-from datalib.no_data import NoDatabaseManager, NoQueryBundleTranslator
 
 
 def test_modeldata_graph_initialisation():
@@ -23,7 +21,7 @@ def test_optional_foreign():
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
-        StandardPrimaryKeyResolver(), StandardFieldNamer())
+        StandardPrimaryKeyResolver())
     schema_translator.translate_schema(table_structure)
 
 def test_enum():
@@ -31,7 +29,7 @@ def test_enum():
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
-        StandardPrimaryKeyResolver(), StandardFieldNamer())
+        StandardPrimaryKeyResolver())
     schema_translator.translate_schema(table_structure)
 
 def test_iter():
@@ -39,24 +37,15 @@ def test_iter():
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
-        StandardPrimaryKeyResolver(), StandardFieldNamer())
+        StandardPrimaryKeyResolver())
     schema_translator.translate_schema(table_structure)
 
 def test_modeldata_table_initialisation():
     db = schema.ClassDependencyGraph((modeldata,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
-        StandardPrimaryKeyResolver(), StandardFieldNamer())
+        StandardPrimaryKeyResolver())
     schema_translator.translate_schema(table_structure)
-
-def test_query_combination():
-    database_manager = NoDatabaseManager()
-    query_1 = Query(int, database_manager.execute_query)
-    query_2 = Query(str, database_manager.execute_query)
-    combined_query: QueryBundle[int, str] = QueryBundle.create((query_1, query_2))
-    query_3 = Query(bool, database_manager.execute_query)
-    doubly_combined_query = QueryBundle.create((query_1, query_2, query_3))
-    print(doubly_combined_query.expected_types)
 
 if __name__ == "__main__":
     test_modeldata_graph_initialisation()

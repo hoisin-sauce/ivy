@@ -51,8 +51,10 @@ class TableStructure:
 
         table = Table(
             name=name,
-            fields=[PrimaryKey()]
+            fields=list()
         )
+
+        table.fields.append(PrimaryKey(self.namer.name_primary_key(table)))
 
         self.backwards_table_lookups[table] = datatype
 

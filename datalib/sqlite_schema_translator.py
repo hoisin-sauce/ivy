@@ -7,7 +7,6 @@ from datalib.abstract_database_components import SchemaTranslator, QueryToBeReso
 from datalib.database_types import SQLiteString
 from datalib.datatypes import (Table, TableField, PrimaryKey, ForeignKey,
                                IterableField, Field)
-from datalib.naming import FieldNamer
 from datalib.database_constraint import *
 import datalib.database_constraint as database_constraint
 from datalib.schema import TableStructure
@@ -30,19 +29,16 @@ def get_table_constraint_create(constraint: TableConstraint) -> str:
 @dataclass
 class SQLiteSchemaTranslator(SchemaTranslator[SQLiteString]):
     primary_key_handler: PrimaryKeyResolver
-    field_namer: FieldNamer
 
     def translate_schema(self, schema: TableStructure) -> QueryToBeResolved[None, SQLiteString]:
         return SQLiteTranslatedSchema(
             schema=schema,
             primary_key_handler=self.primary_key_handler,
-            field_namer=self.field_namer,
         ).get_query()
 
 @dataclass
 class SQLiteTranslatedSchema:
     primary_key_handler: PrimaryKeyResolver
-    field_namer: FieldNamer
     schema: TableStructure
 
     def get_query(self) -> QueryToBeResolved[None, SQLiteString]:
@@ -82,18 +78,20 @@ class SQLiteTranslatedSchema:
         return database_creation_string
 
     def get_field_constraints(self, field: TableField) -> Iterable[DatabaseConstraint]:
+        del self # Ha! now it's not static
         constraints = list()
 
         if not field.is_optional:
             constraints.append(MandatoryFieldConstraint())
 
         if isinstance(field, PrimaryKey):
+            # TODO Aren't we meant to have a class to handle this
             constraints.append(PrimaryKeyConstraint())
 
         if isinstance(field, ForeignKey):
             field: ForeignKey
             foreign_table_name: str = field.to.name
-            foreign_primary_key: str = self.field_namer.name_primary_key(field.to)
+            foreign_primary_key: str = field.to.get_primary_key().name
             constraints.append(ForeignKeyConstraint(field_name=field.name,
                 table_name=foreign_table_name,
                 table_primary_key_field_name=foreign_primary_key))
@@ -101,11 +99,10 @@ class SQLiteTranslatedSchema:
         return constraints
 
     def get_name(self, field: TableField, table: Table) -> str:
+        del table # In case it needs to be re-introduced without having to redundantly change the function shape back and again
+
         if hasattr(field, "name"):
             return field.name
-
-        if isinstance(field, PrimaryKey):
-            return self.field_namer.name_primary_key(table)
 
         raise NotImplementedError(
             f"Field type {type(field).__name__} not supported for Sqlite database")

@@ -1,8 +1,7 @@
 from typing import Generator, Any
 
-import datalib
 from datalib.database_types import NoData
-from datalib.naming import FieldNamer, StandardFieldNamer
+from datalib.naming import TableNamer, StandardTableNamer
 from datalib.queries import Query, QueryBundle
 from datalib.abstract_database_components import (
     DatabaseRequestManger,
@@ -53,8 +52,8 @@ class NoDatabaseManager(DatabaseManager[NoData]):
     Dummy Database Manager class
     """
     schema: TableStructure = NoSchema()
-    field_namer: FieldNamer = StandardFieldNamer()
+    field_namer: TableNamer = StandardTableNamer()
     query_resolver: QueryTranslator[NoData] = NoQueryBundleTranslator()
-    interaction_translator: InsertionTranslator[NoData] = NoInsertionTranslator()
+    insertion_translator: InsertionTranslator[NoData] = NoInsertionTranslator()
     database_request_manager: DatabaseRequestManger[NoData] = NoDatabaseRequestManager()
     schema_translator: SchemaTranslator[NoData] = NoSchemaTranslator()

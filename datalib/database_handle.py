@@ -11,7 +11,7 @@ from datalib.abstract_database_components import QueryTranslator, DatabaseReques
 
 class DatabaseManager[DatabaseInteractionType](metaclass=ABCMeta):
     schema: datalib.schema.TableStructure
-    field_namer: datalib.naming.FieldNamer
+    field_namer: datalib.naming.TableNamer
     query_resolver: QueryTranslator[DatabaseInteractionType]
     insertion_translator: InsertionTranslator[DatabaseInteractionType]
     database_request_manager: DatabaseRequestManger[DatabaseInteractionType]
@@ -21,6 +21,8 @@ class DatabaseManager[DatabaseInteractionType](metaclass=ABCMeta):
         self.initialise_database()
 
     def initialise_database(self) -> None:
+        # TODO write implementation and figure out schema conflict resolution strategies
+        # When clashes exist with an already existing database
         ...
 
     def select[T](self, datatype: type[T]) -> Query[T]:

@@ -52,6 +52,10 @@ class TableNamer(Namer, metaclass=ABCMeta):
     def name_iterator_field_to_data(self) -> str:
         ...
 
+    @abstractmethod
+    def name_primary_key(self, table: Table) -> str:
+        ...
+
 class StandardTableNamer(TableNamer):
     def sanitise_module_name(self, module_name: str) -> str:
         del self
@@ -88,18 +92,5 @@ class StandardTableNamer(TableNamer):
     def name_iterator_field_to_data(self) -> str:
         return "field_to_data"
 
-class FieldNamer(Namer, metaclass=ABCMeta):
-    @abstractmethod
-    def name_primary_key(self, table: Table) -> str:
-        ...
-
-    @abstractmethod
-    def name_foreign_key_field(self, table_to: Table) -> str:
-        ...
-
-class StandardFieldNamer(FieldNamer):
     def name_primary_key(self, table: Table) -> str:
         return f"{table.name}id"
-
-    def name_foreign_key_field(self, table_to: Table) -> str:
-        return self.name_primary_key(table_to)

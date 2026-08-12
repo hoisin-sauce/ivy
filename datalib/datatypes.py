@@ -1,6 +1,8 @@
 """Stores the datatypes used to represent different parts of the modelling system
 """
 from dataclasses import dataclass
+from typing import Optional
+
 from datalib import type_processing
 from datalib import const
 from abc import ABCMeta, abstractmethod
@@ -40,6 +42,7 @@ class DataType:
 # Table Structure
 
 class TableField:
+    name: str
     is_optional: bool = False
 
 @dataclass
@@ -55,13 +58,15 @@ class ForeignKey(TableField):
     """
     Represents a foreign key to another table
     """
-    to: "Table"
     name: str
+    to: "Table"
 
+@dataclass
 class PrimaryKey(TableField):
     """
     Represents a primary key of a table
     """
+    name: str
 
 @dataclass
 class IterableField(TableField):
@@ -82,6 +87,21 @@ class Table:
     def __hash__(self) -> int:
         return hash(self.name)
 
+    def get_field(self, name: str) -> Optional[TableField]:
+        for field in self.fields:
+            if field.name == name:
+                return field
+
+        return None
+
+    def get_primary_key(self) -> PrimaryKey:
+        for field in self.fields:
+            if isinstance(field, PrimaryKey):
+                return field
+
+        # We want to error here because we're gonna error like 3 seconds after
+        # If not
+        raise KeyError("Primary key not found in table")
 # Database
 
 

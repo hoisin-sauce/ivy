@@ -50,4 +50,9 @@ def public_dir(obj: Any) -> list[str]:
     Returns:
         List containing the public attributes in the provided object
     """
-    return [i for i in dir(obj) if not i.startswith("__")]
+    return list(
+        filter(
+            lambda x: not x.startswith('_'),
+            dir(obj)
+        )
+    )

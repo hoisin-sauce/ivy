@@ -57,5 +57,6 @@ class StandardPrimaryKeyResolver(PrimaryKeyResolver):
     key_type = int
 
 __all__ = [
-    "DatabaseConstraint", "FieldConstraint", "TableConstraint", "PrimaryKeyConstraint", "MandatoryFieldConstraint",
-    "ForeignKeyConstraint", "PrimaryKeyResolver", "StandardPrimaryKeyResolver"]
+    "DatabaseConstraint", "FieldConstraint", "TableConstraint",
+    "PrimaryKeyConstraint", "MandatoryFieldConstraint", "ForeignKeyConstraint",
+    "PrimaryKeyResolver", "StandardPrimaryKeyResolver"]

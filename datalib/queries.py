@@ -27,6 +27,35 @@ class Query[T]:
     """
     Abstract query class representing a query for data in a single class
     with any number of applied conditions
+
+    Example::
+        >>> class A:
+        >>>     a: int
+        >>>     b: int
+        >>>
+        >>> make_subscriptable_table(A)
+        >>> obj_attribute: ObjectAttribute = A["a"]
+        >>> condition: Condition = obj_attribute == 2
+        >>> T = TypeVar("T")
+        >>> query_executor: Callable[[Query[T]], Generator[T]]
+        >>> query = Query(A, query_executor)
+        >>> query.where(condition)
+        >>> # Or in one line
+        >>> query = Query(A, query_executor).where(A["a"]==1)
+
+    To construct a query for instances of A where the 'a' field is equal to 1
+
+    As a standard practice queries should not be created except by a database
+    object, e.g.
+
+    Example::
+        >>> from datalib.database_handle import DatabaseManager
+        >>> IntermediateType = TypeVar("IntermediateType")
+        >>> db: DatabaseManager[IntermediateType] # Database handle
+        >>> db.select(A).where(A["a"]==1) == query
+
+    Which should allow for simpler, more pythonic interaction and less
+    boilerplate
     """
     conditions: "list[Condition]"
     executor: Callable[["Query[T]"], Generator[T]]
@@ -64,6 +93,7 @@ class QueryBundle[*Ts]:
     """
     Group of queries that can be executed simultaneously
     """
+    # TODO include a where field which would allow for applying filters using data from combined queries
     expected_types: tuple[*Ts]
     queries: tuple[Query, ...]
 
@@ -120,6 +150,18 @@ class Condition:
 class ObjectAttribute: # How do we deal with iterables or other such things
     """
     Represents a database field # TODO resolve duplication about how database fields are represented
+    Does not support comparison except in creating conditions based on the
+    attribute described by the object.
+    All comparisons will effectively evaluate to true as they are overloaded
+
+    Example::
+        >>> class A:
+        >>>     a: int
+        >>>     b: int
+        >>>
+        >>> make_subscriptable_table(A)
+        >>> obj_attribute: ObjectAttribute = A["a"]
+        >>> condition: Condition = obj_attribute == 2
     """
     object_type: "type | ObjectAttribute"
     attribute_name: str

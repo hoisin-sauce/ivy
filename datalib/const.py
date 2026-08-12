@@ -1,6 +1,7 @@
 """Stores constants being used for the database creation based on module types.
 """
-import datalib.datatypes as datatypes
+# Note that we need to refactor this into state to allow for different databases to hold type
+# This may require different graph types
 
 # BASIC TYPES
 NONE_TYPE = type(None)
@@ -12,5 +13,3 @@ BASIC_TYPE_MAPPINGS = {
     bool: "BOOLEAN",
     float: "REAL",
 }
-
-# NAMING CONVENTIONS

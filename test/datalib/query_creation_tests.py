@@ -46,8 +46,18 @@ def test_query_subscripting_field():
     assert isinstance(q.conditions[0].left.object_type, ObjectAttribute)
     assert isinstance(q.conditions[0].right, ObjectAttribute)
 
+def test_query_combination():
+    query_1 = Query(int, blank_database_interface.execute_query)
+    query_2 = Query(str, blank_database_interface.execute_query)
+    combined_query: QueryBundle[int, str] = QueryBundle.create((query_1, query_2))
+    query_3 = Query(bool, blank_database_interface.execute_query)
+    doubly_combined_query = QueryBundle.create((query_1, query_2, query_3))
+
+    # TODO write assertion properties
+
 if __name__ == "__main__":
     test_basic_query()
     test_query_from_interface()
     test_query_basic_valid_condition()
     test_query_subscripting_field()
+    test_query_combination()
