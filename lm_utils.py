@@ -5,6 +5,7 @@ from typing import Any, Callable, Iterable
 import queue
 import threading
 import typing
+import string
 
 def safe_is_subclass(obj: Any, class_or_tuple: typing.Type|tuple[typing.Type]) -> bool:
     """
@@ -76,6 +77,12 @@ def object_to_dict(obj: Any) -> dict | Any:
             ret_dict[k] = object_to_dict(v)
 
     return ret_dict
+
+def remove_whitespace(text: str) -> str:
+    for char in string.whitespace:
+        text = text.replace(char, '')
+
+    return text
 
 class Request[A, B]:
     """

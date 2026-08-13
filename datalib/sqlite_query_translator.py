@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any
+
 from datalib.abstract_database_components import QueryTranslator, \
     QueryToBeResolved
 from datalib.database_types import SQLiteString
@@ -5,17 +8,18 @@ from datalib.datatypes import Table
 from datalib.queries import Query, Condition, ObjectAttribute, \
     ConditionCombination, ConditionOperator
 from datalib.schema import TableStructure
-from typing import Any
+from datalib import const
+from lm_utils import object_to_dict
 
 
 # text conversions
 
 def select_all_from(table_name: str) -> str:
-    return f"SELECT\n\t*\nFROM\n\t{table_name}\n"
+    return f"SELECT\n\t*\nFROM\n\t{table_name}"
 
 
 def get_condition_opener() -> str:
-    return "WHERE"
+    return "\nWHERE\n"
 
 
 def end_select_statement() -> str:
@@ -27,7 +31,7 @@ def add_indent(string: str, indent_amount: int) -> str:
     line_prefix = "\n" + "\t" * indent_amount
     return line_prefix.join(lines)
 
-
+@dataclass
 class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
     schema: TableStructure
 
@@ -35,32 +39,40 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
     # ORRRRR we could just use reflection to guarantee that it will exist
     def translate_query[T](self, query: Query[T]) -> QueryToBeResolved[
         T, SQLiteString]:
+
+        assert query.expected_type in self.schema.table_lookups
+
         table: Table = self.schema.table_lookups[query.expected_type]
         conditions = query.conditions
 
-        # how do we approach instantiating a boilerplate class
-        raise NotImplementedError("Query format not yet supported")
+
+        query_string = select_all_from(table.name)
+        if conditions:
+            query_string += get_condition_opener()
+            query_string += "\nAND\n".join(map(self.resolve_condition, conditions))
+
+        query_string += end_select_statement()
+        sqlite_query_string = SQLiteString(query_string)
+        return QueryToBeResolved[T, SQLiteString](sqlite_query_string)
 
     def resolve_condition(self, condition: Condition) -> str:
-        return self.resolve_condition(condition)
+        return self.resolve_condition_fragment(condition)
 
     def resolve_condition_fragment(self, fragment: Any) -> str:
         # we want to implement conversion implementation here
-        # this is for logic flow
+        # this is for logic flow # TODO refactor for this
         # We want explicitly isinstance checks rather than match because????
         # note: this code is definitely not backwards compatible
         # The whole framework requires typing to function as intended ideally
+
         if isinstance(fragment, Condition):
             if isinstance(fragment.operator, ConditionCombination):
                 # indent sub block
-                return add_indent(
-                    f"(\n\t{self.resolve_condition_fragment(fragment.left)}\n{fragment.operator.value()}\n\t{self.resolve_condition_fragment(fragment.right)}\n)", 1)
-                raise NotImplementedError("Combinations are not yet supported")
+                return self.translate_condition_combination_fragment(fragment)
             elif isinstance(fragment.operator, ConditionOperator):
                 # have inline
                 # note that we will have to implement in here
-                return f"({self.resolve_condition_fragment(fragment.left)} {fragment.operator.value()} {self.resolve_condition_fragment(fragment.right)})"
-                raise NotImplementedError("Operators are not yet supported")
+                return self.translate_condition_operator_fragment(fragment)
             else:
                 # Note - should be unreachable
                 raise NotImplementedError(
@@ -69,7 +81,13 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         if isinstance(fragment, ObjectAttribute):
             # resolve the table necessities
             ...
-            raise NotImplementedError("ObjectAttributes are not yet supported")
+            if isinstance(fragment.object_type, ObjectAttribute):
+                return self.translate_nested_field(fragment)
+
+            if isinstance(fragment.object_type, type):
+                return self.translate_non_nested_field(fragment)
+
+            raise NotImplementedError(f"ObjectAttributes of parent type {type(fragment.object_type).__name__} are not yet supported")
 
         if isinstance(fragment, type):
             # resolve table reference and find primary key
@@ -85,9 +103,41 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         # I think that we have to resolve the issues
         # We are now approached with the idea of concurrency
         # What strategy is to be
+        if isinstance(fragment, tuple(const.BASIC_TYPES)):
+            return self.translate_standard_constant(fragment)
 
         raise NotImplementedError("Data values are not yet supported")
 
+    def translate_condition_combination_fragment(self, fragment: Condition) -> str:
+        return add_indent(
+            f"(\n\t{self.resolve_condition_fragment(fragment.left)}\n{fragment.operator.value()}\n\t{self.resolve_condition_fragment(fragment.right)}\n)",
+            1)
+
+    def translate_condition_operator_fragment(self, fragment: Condition) -> str:
+        assert isinstance(fragment, Condition)
+
+        resolved_left = self.resolve_condition_fragment(fragment.left)
+        operation = fragment.operator.value
+        resolved_right = self.resolve_condition_fragment(fragment.right)
+
+        return f"({resolved_left} {operation} {resolved_right})"
+
+    def translate_non_nested_field(self, fragment: ObjectAttribute) -> str:
+        assert isinstance(fragment.object_type, type), "Non-nested fields require the parent of an attribute to be a type"
+        table = self.schema.table_lookups[fragment.object_type]
+        field_name = fragment.attribute_name
+
+        return f"{table.name}.{field_name}"
+
+    def translate_standard_constant(self, fragment: const.BASIC_TYPE_HINT) -> str:
+        del self # To allow for a standard signature
+        return str(fragment)
+
+    def translate_nested_field(self, fragment: ObjectAttribute) -> str:
+        # TODO verify functionality after database implementation
+
+        assert isinstance(fragment.object_type, ObjectAttribute)
+        assert fragment.attribute_type in self.schema.table_lookups
 
 """
 Thoughts

@@ -1,5 +1,15 @@
+from types import ModuleType
+
+from datalib.abstract_database_components import QueryToBeResolved
+from datalib.database_types import SQLiteString
+from datalib.naming import StandardTableNamer
 from datalib.no_data import NoDatabaseManager
 from datalib.queries import *
+from datalib.sqlite_query_translator import SQLiteQueryTranslator
+from datalib.graph import ClassDependencyGraph
+from datalib.schema import TableStructure
+
+from lm_utils import remove_whitespace
 
 blank_database_interface = NoDatabaseManager()
 
@@ -11,6 +21,16 @@ def test_basic_query():
     assert q.expected_type == query_data.SampleChild
     assert not q.conditions
 
+    translator = setup_translation_environment(query_data)
+    translated_q = translator.translate_query(q)
+
+    expected_query = ("SELECT\n"
+                      "\t*\n"
+                      "FROM\n"
+                      "\ttest_datalib_test_data_query_tables__SampleChild;")
+
+    assert translated_q.query_to_database == expected_query
+
 def test_query_from_interface():
     from test.datalib import test_data_query_tables as query_data
 
@@ -18,6 +38,16 @@ def test_query_from_interface():
 
     assert q.expected_type == query_data.SampleChild
     assert not q.conditions
+
+    translator = setup_translation_environment(query_data)
+    translated_q = translator.translate_query(q)
+
+    expected_query = ("SELECT"
+                      "*"
+                      "FROM"
+                      "test_datalib_test_data_query_tables__SampleChild;")
+
+    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
 
 def test_query_basic_valid_condition():
     from test.datalib import test_data_query_tables as query_data
@@ -31,6 +61,18 @@ def test_query_basic_valid_condition():
     assert len(q.conditions) == 1
     assert isinstance(q.conditions[0].left, ObjectAttribute)
     assert isinstance(q.conditions[0].right, int)
+
+    translator = setup_translation_environment(query_data)
+    translated_q = translator.translate_query(q)
+
+    expected_query = ("SELECT"
+                      "*"
+                      "FROM"
+                      "test_datalib_test_data_query_tables__SampleChild"
+                      "WHERE"
+                      "(test_datalib_test_data_query_tables__SampleChild.a = 1)")
+
+    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
 
 def test_query_subscripting_field():
     from test.datalib import test_data_query_tables as query_data
@@ -46,6 +88,11 @@ def test_query_subscripting_field():
     assert isinstance(q.conditions[0].left.object_type, ObjectAttribute)
     assert isinstance(q.conditions[0].right, ObjectAttribute)
 
+    translator = setup_translation_environment(query_data)
+    translated_q = translator.translate_query(q)
+
+    print(translated_q)
+
 def test_query_combination():
     query_1 = Query(int, blank_database_interface.execute_query)
     query_2 = Query(str, blank_database_interface.execute_query)
@@ -54,6 +101,16 @@ def test_query_combination():
     doubly_combined_query = QueryBundle.create((query_1, query_2, query_3))
 
     # TODO write assertion properties
+
+def setup_translation_environment(module: ModuleType) -> SQLiteQueryTranslator:
+    make_module_subscriptable(module)
+    creation_graph = ClassDependencyGraph((module,))
+    table_structure = TableStructure(creation_graph, StandardTableNamer())
+    sqlite_query_translator = SQLiteQueryTranslator(table_structure)
+    return sqlite_query_translator
+
+def print_translated_query[T](translated_query: QueryToBeResolved[T, SQLiteString]):
+    print("\n" + translated_query.query_to_database)
 
 if __name__ == "__main__":
     test_basic_query()

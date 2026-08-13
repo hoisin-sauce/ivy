@@ -5,6 +5,16 @@ from typing import Iterable
 
 def filter_table_field_constraints(constraints: Iterable["DatabaseConstraint"]
     ) -> tuple[Iterable["TableConstraint"], Iterable["FieldConstraint"]]:
+    """
+    Splits constraints into table and field constraints
+    Args:
+        constraints:
+            An iterable of DatabaseConstraint objects
+    Returns:
+        A tuple in the format of (table_constraints, field_constraints)
+        Where table_constraints contains subclasses of TableConstraint and
+        field_constraints contains subclasses of FieldConstraint.
+    """
     table_constraints = []
     field_constraints = []
     for constraint in constraints:

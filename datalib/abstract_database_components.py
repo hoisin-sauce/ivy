@@ -1,7 +1,10 @@
+""" Contains the abstract components that make up the standardised database control flow for modularity
+"""
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Generator, Any
 import typing
+
 from datalib.queries import Query, QueryBundle
 from datalib.schema import TableStructure
 
@@ -26,6 +29,10 @@ class QueryTranslator[OutputType](metaclass=ABCMeta):
         ...
 
 class QueryBundleTranslator[OutputType](QueryTranslator[OutputType], metaclass=ABCMeta):
+    """
+    Abstract class to handle the translation of bundled queries to the
+    specified output format
+    """
     @abstractmethod
     def translate_query_bundle[T](self, query: QueryBundle[T]) -> QueryToBeResolved[T, OutputType]:
         ...
@@ -41,11 +48,19 @@ class DatabaseRequestManger[InputType](metaclass=ABCMeta):
         ...
 
 class InsertionTranslator[OutputType](metaclass=ABCMeta):
+    """
+    Abstract class used to translate an object to a query of the specified
+    output format
+    """
     @abstractmethod
     def translate_insertion(self, obj: Any) -> QueryToBeResolved[None, OutputType]:
         ...
 
 class SchemaTranslator[OutputType](metaclass=ABCMeta):
+    """
+    Abstract class used to translate a schema object to a query of the
+    specified
+    """
     @abstractmethod
     def translate_schema(self, schema: TableStructure) -> QueryToBeResolved[None, OutputType]:
         ...

@@ -1,7 +1,7 @@
 import types
 import typing
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from collections.abc import Iterable, Generator
 from typing import Any, Unpack, Tuple, overload, Self, Callable, TypeVar
 from types import GenericAlias
@@ -10,11 +10,11 @@ from datalib import type_processing
 # TODO implement __all__ to limit what can be imported from this module
 
 
-class ConditionCombination(Enum):
+class ConditionCombination(StrEnum):
     AND = "AND"
     OR = "OR"
 
-class ConditionOperator(Enum):
+class ConditionOperator(StrEnum):
     EQUALS = "="
     NOT_EQUALS = "!="
     LESS_THAN = "<"
@@ -57,7 +57,7 @@ class Query[T]:
     Which should allow for simpler, more pythonic interaction and less
     boilerplate
     """
-    conditions: "list[Condition]"
+    conditions: "list[Condition]" # is this the right way to store them?
     executor: Callable[["Query[T]"], Generator[T]]
     expected_type: type
 
@@ -134,6 +134,9 @@ class Condition:
     left: "ObjectAttribute | Condition"
     right: "ObjectAttribute | type | Condition | Any"
     operator: ConditionOperator | ConditionCombination
+
+    def __post_init__(self) -> None:
+        assert isinstance(self.operator, (ConditionCombination, ConditionOperator))
 
     def __and__(self, other: "Condition") -> "Condition":
         return Condition(self, other, ConditionCombination.AND)
