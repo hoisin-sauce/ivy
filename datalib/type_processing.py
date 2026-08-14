@@ -162,8 +162,8 @@ def create_annotated_datatype(name: str, datatypes: Iterable[type] | Mapping[
     if isinstance(datatypes, Mapping):
         Alias.__annotations__ = {k: v for k, v in datatypes.items()}
     else:
-        Alias.__annotations__ = {i: i for i in datatypes if
-                                 isinstance(i, tuple)}
+        Alias.__annotations__ = {i.__name__: i for i in datatypes if
+                                 isinstance(i, type)}
     Alias.__name__ = name
 
     if module is not None:

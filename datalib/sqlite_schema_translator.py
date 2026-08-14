@@ -48,7 +48,7 @@ class SQLiteTranslatedSchema:
             table_create_statements.append(self.get_table_create_statement(table))
 
         schema_string = "\n".join(table_create_statements)
-        return QueryToBeResolved(SQLiteString(schema_string))
+        return QueryToBeResolved(SQLiteString(schema_string), const.NONE_TYPE)
 
     def get_table_create_statement(self, table: Table) -> str:
         database_creation_string = get_table_create_start(table.name)
@@ -73,6 +73,9 @@ class SQLiteTranslatedSchema:
 
         for table_constraint in table_constraints:
             database_creation_string += get_table_constraint_create(table_constraint)
+
+        if database_creation_string[-2] == ",":
+            database_creation_string = database_creation_string[:-2] + "\n"
 
         database_creation_string += get_table_create_end(table.name)
         return database_creation_string

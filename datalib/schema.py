@@ -11,6 +11,8 @@ from datalib.graph import ClassDependencyGraph
 from datalib.datatypes import Table, PrimaryKey, ForeignKey, Field, IterableField, \
     TableField
 from datalib.naming import TableNamer
+from lm_utils import object_to_dict
+
 
 class TableStructure:
     """
@@ -174,10 +176,11 @@ class TableStructure:
             cls = type_processing.create_annotated_datatype(
                 self.namer.name_union_member(parent, field_name, datatype),
                 [datatype, union_alias])
+
             self.add_table(cls)
             number_mapping[i] = datatype.__name__
 
-        # TODO store number mapping somewhere appropriate
+        # TODO store number mapping somewhere appropriate to allow for it to be picked up
         return ForeignKey(to=table_reference, name=field_name), None
 
     def get_optional_field(self, field_name: str, possible_types: Iterable[type], parent: Table) -> tuple[TableField, Optional[Table]]:

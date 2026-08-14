@@ -15,3 +15,10 @@ class SomeContainer:
 class SampleGrandparent:
     parent: SampleParent
     child: SampleChild
+
+class SampleGreatGrandparent:
+    grandparent: SampleGrandparent
+
+class CouldHaveParentOrGrandparent:
+    parent_or_grandparent: SampleParent | SampleChild
+    simpler_concept: int | str | bool

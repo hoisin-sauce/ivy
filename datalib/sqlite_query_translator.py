@@ -70,7 +70,7 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
 
         query_string += end_select_statement()
         sqlite_query_string = SQLiteString(query_string)
-        return QueryToBeResolved[T, SQLiteString](sqlite_query_string)
+        return QueryToBeResolved[T, SQLiteString](sqlite_query_string, query.expected_type)
 
     def resolve_conditions(self, conditions: Iterable[Condition]) -> tuple[str, str]:
         """
@@ -229,7 +229,7 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         required_joins = list()
 
         while isinstance(parent, ObjectAttribute):
-            print("YO I DID A PASS")
+            # TODO refactor, logic is a bit complex here
             # resolve what we are joining to
             parent_attribute = parent.attribute_type
             assert isinstance(parent_attribute, type), "Complex fields are not yet supported"
@@ -249,6 +249,7 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
                 if not grandparent_foreign_key:
                     raise KeyError(
                         f"{parent.attribute_name} is not a valid member of {grandparent_table.name}")
+
             elif isinstance(grandparent, type):
                 grandparent_table = self.schema.table_lookups[grandparent]
                 grandparent_foreign_key = grandparent_table.get_field(
@@ -272,61 +273,4 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
 
 # TODO refactor where statements into their own functions
 # TODO allow for the resolving of union fields
-"""
-Thoughts
-
-we want a query coming from
-
-select(table).where(table[field] == ...)
-
-okay so we probably want a way to process the table[field] part (both left and right of the condition)
-
-adapting the select(table) shouldn't be that much of an issue
-
-all we need is
-SELECT
-    *
-FROM
-    table.name
-as the general query string
-
-how do we translate the condition
-
-how do we get the corresponding fields???
-does the table object need a field name mapper
-
-the query contract should guarantee that an conditions contain valid fields
-a condition however, does not validate that this comparison is valid?
-or does it fully in the ObjectAttribute
-
-i think it validates that the types are valid but not that it works properly
-
-we can take a recursive approach to unpacking conditions
-
-conditions have a structure like this:
-
-conition LEFT OPERATOR RIGHT
-where LEFT = CONDITION | FIELD
-and 
-RIGHT = CONDITION | FIELD
-so we just give them something like
-condition => (RESOLVE(LEFT) OPERATOR RESOLVE(RIGHT))
-
-SELECT
-    *
-FROM
-    table.name
-WHERE
-    (
-        thing == otherthing
-    )
-WHERE
-    (
-        (
-            thing == otherthing
-        ) OR (
-            thing == otherthing
-        )
-    )
-and now resolve is the issue
-"""
+# Note - my honest opinion is that this strategy of resolving the fields at present is a bit naive in approaching resolving union fields

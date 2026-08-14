@@ -8,8 +8,6 @@ import typing
 from datalib.queries import Query, QueryBundle
 from datalib.schema import TableStructure
 
-# TODO implement a method of standardising the conversion of data from the database to an object
-
 @dataclass
 class QueryToBeResolved[ExpectedOutputObjectType, DatabaseExpectedDatatype]:
     """
@@ -18,6 +16,7 @@ class QueryToBeResolved[ExpectedOutputObjectType, DatabaseExpectedDatatype]:
     to allow for easier alignment
     """
     query_to_database: DatabaseExpectedDatatype
+    expected_type: type[ExpectedOutputObjectType]
 
 OutputType = typing.TypeVar("OutputType")
 class QueryTranslator[OutputType](metaclass=ABCMeta):
@@ -38,14 +37,29 @@ class QueryBundleTranslator[OutputType](QueryTranslator[OutputType], metaclass=A
     def translate_query_bundle[T](self, query: QueryBundle[T]) -> QueryToBeResolved[T, OutputType]:
         ...
 
+Format = typing.TypeVar("Format")
+@dataclass
+class DatabaseOutput[Format, T]:
+    output: Format
+    expected_type: type[T]
+
 InputType = typing.TypeVar("InputType")
-class DatabaseRequestManger[InputType](metaclass=ABCMeta):
+class DatabaseRequestManger[InputType, OutputType](metaclass=ABCMeta):
     """
-    Handles execution of actual queries on the database
+    Handles execution of actual queries on the database,
+    returns them in the format specified
+    """
+    @abstractmethod
+    def execute_query[T](self, query: QueryToBeResolved[T, InputType]) -> DatabaseOutput[OutputType, T]:
+        ...
+
+class DatabaseOutputProcessor[OutputType](metaclass=ABCMeta):
+    """
+    Processes the output format of the database into an actual object for the user
     # TODO create lazy evaluation of subclass attributes
     """
     @abstractmethod
-    def execute_query[T](self, query: QueryToBeResolved[T, InputType]) -> Generator[T]:
+    def get_output[T](self, database_output: DatabaseOutput[OutputType, T]) -> Generator[T]:
         ...
 
 class InsertionTranslator[OutputType](metaclass=ABCMeta):

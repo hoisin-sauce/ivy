@@ -60,7 +60,7 @@ class Query[T]:
     """
     conditions: "list[Condition]" # is this the right way to store them?
     executor: Callable[["Query[T]"], Generator[T]]
-    expected_type: type
+    expected_type: type[T]
 
     # TODO make queries subscriptable
 
@@ -95,7 +95,8 @@ class QueryBundle[*Ts]:
     Group of queries that can be executed simultaneously
     """
     # TODO include a where field which would allow for applying filters using data from combined queries
-    expected_types: tuple[*Ts]
+    expected_types: tuple[type]
+    expected_type_signature: type[*Ts]
     queries: tuple[Query, ...]
 
     def __init__(self, elements: tuple[Query, ...]) -> None: # TODO do not expose
@@ -103,6 +104,7 @@ class QueryBundle[*Ts]:
         assert len(set(map(lambda x: x.executor, elements))) == 1, "Queries in a query bundle must share the same executor"
         self.expected_types = tuple(q.expected_type for q in elements)
         self.queries = elements
+        self.expected_type_signature = type_processing.get_union_type(list(self.expected_types))
 
     @overload
     @classmethod

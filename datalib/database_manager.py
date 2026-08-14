@@ -5,16 +5,19 @@ from typing import Any, Optional, Generator
 import datalib.schema
 import datalib.naming
 from datalib.queries import Query
-from datalib.abstract_database_components import QueryTranslator, DatabaseRequestManger, \
-    QueryToBeResolved, InsertionTranslator, SchemaTranslator
+from datalib.abstract_database_components import QueryTranslator, \
+    DatabaseRequestManger, \
+    QueryToBeResolved, InsertionTranslator, SchemaTranslator, \
+    DatabaseOutputProcessor
 
 
-class DatabaseManager[DatabaseInteractionType](metaclass=ABCMeta):
+class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABCMeta):
     schema: datalib.schema.TableStructure
     field_namer: datalib.naming.TableNamer
     query_resolver: QueryTranslator[DatabaseInteractionType]
     insertion_translator: InsertionTranslator[DatabaseInteractionType]
-    database_request_manager: DatabaseRequestManger[DatabaseInteractionType]
+    database_request_manager: DatabaseRequestManger[DatabaseInteractionType, DataProcessingType]
+    database_output_processor: DatabaseOutputProcessor[DataProcessingType]
     schema_translator: SchemaTranslator[DatabaseInteractionType]
 
     def __post_init__(self) -> None:
@@ -40,8 +43,9 @@ class DatabaseManager[DatabaseInteractionType](metaclass=ABCMeta):
 
     def execute_query[T](self, query: Query[T]) -> Generator[T]:
         query_representation: QueryToBeResolved[T, DatabaseInteractionType] = self.query_resolver.translate_query(query)
-        return self.database_request_manager.execute_query(query_representation)
+        database_output: DataProcessingType = self.database_request_manager.execute_query(query_representation)
+        return self.database_output_processor.get_output(database_output)
 
-    def insert_single(self, obj: Any):
+    def insert_single(self, obj: Any) -> None: # TODO refactor
         insertion_representation: DatabaseInteractionType = self.insertion_translator.translate_insertion(obj)
-        return self.database_request_manager.execute_query(insertion_representation)
+        self.database_request_manager.execute_query(insertion_representation)
