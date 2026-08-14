@@ -8,6 +8,7 @@ import typing
 from datalib.queries import Query, QueryBundle
 from datalib.schema import TableStructure
 
+# TODO implement a method of standardising the conversion of data from the database to an object
 
 @dataclass
 class QueryToBeResolved[ExpectedOutputObjectType, DatabaseExpectedDatatype]:

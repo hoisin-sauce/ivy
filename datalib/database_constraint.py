@@ -28,21 +28,36 @@ def filter_table_field_constraints(constraints: Iterable["DatabaseConstraint"]
 
 
 class DatabaseConstraint(metaclass=ABCMeta):
+    """
+    Abstract class representing a constraint on a database
+    """
     @abstractmethod
     def __repr__(self) -> str:
         ...
 
 class FieldConstraint(DatabaseConstraint, metaclass=ABCMeta):
+    """
+    Abstract class representing a constraint on a field
+    """
     ...
 
 class TableConstraint(DatabaseConstraint, metaclass=ABCMeta):
+    """
+    Abstract class representing a constraint on a table
+    """
     ...
 
 class PrimaryKeyConstraint(FieldConstraint):
-    def __repr__(self) -> str:
+    """
+    Class representing that a primary key constraint is present on this field
+    """
+    def __repr__(self) -> str: # TODO refactor into a per database handling of how this constraint should be approached
         return "PRIMARY KEY"
 
 class MandatoryFieldConstraint(FieldConstraint):
+    """
+    Class representing that this field is mandatory
+    """
     def __repr__(self) -> str:
         return "NOT NULL"
 

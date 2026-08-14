@@ -24,12 +24,12 @@ def test_basic_query():
     translator = setup_translation_environment(query_data)
     translated_q = translator.translate_query(q)
 
-    expected_query = ("SELECT\n"
-                      "\t*\n"
-                      "FROM\n"
-                      "\ttest_datalib_test_data_query_tables__SampleChild;")
+    expected_query = ("SELECT"
+                      "test_datalib_test_data_query_tables__SampleChild.*"
+                      "FROM"
+                      "test_datalib_test_data_query_tables__SampleChild;")
 
-    assert translated_q.query_to_database == expected_query
+    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
 
 def test_query_from_interface():
     from test.datalib import test_data_query_tables as query_data
@@ -43,7 +43,7 @@ def test_query_from_interface():
     translated_q = translator.translate_query(q)
 
     expected_query = ("SELECT"
-                      "*"
+                      "test_datalib_test_data_query_tables__SampleChild.*"
                       "FROM"
                       "test_datalib_test_data_query_tables__SampleChild;")
 
@@ -66,7 +66,7 @@ def test_query_basic_valid_condition():
     translated_q = translator.translate_query(q)
 
     expected_query = ("SELECT"
-                      "*"
+                      "test_datalib_test_data_query_tables__SampleChild.*"
                       "FROM"
                       "test_datalib_test_data_query_tables__SampleChild"
                       "WHERE"
@@ -85,13 +85,14 @@ def test_query_subscripting_field():
     assert q.expected_type == query_data.SampleGrandparent
     assert len(q.conditions) == 1
     assert isinstance(q.conditions[0].left, ObjectAttribute)
+    # noinspection unresolved-references
     assert isinstance(q.conditions[0].left.object_type, ObjectAttribute)
     assert isinstance(q.conditions[0].right, ObjectAttribute)
 
     translator = setup_translation_environment(query_data)
     translated_q = translator.translate_query(q)
 
-    print(translated_q)
+    print_translated_query(translated_q)
 
 def test_query_combination():
     query_1 = Query(int, blank_database_interface.execute_query)

@@ -79,10 +79,39 @@ def object_to_dict(obj: Any) -> dict | Any:
     return ret_dict
 
 def remove_whitespace(text: str) -> str:
+    """
+    Removes all whitespace from the provided text.
+    Args:
+        text:
+            Input text
+    Returns:
+        Input text stripped of whitespace from everywhere
+    """
     for char in string.whitespace:
         text = text.replace(char, '')
 
     return text
+
+def remove_duplicates_preserving_order[T](lst: list[T]) -> list[T]:
+    """
+    Remove all duplicate entries from a list whilst preserving order.
+    Requires all elements in the list to be hashable.
+    Args:
+        lst:
+            List of elements to be checked for duplication
+    Returns:
+        List of elements without any duplicate entries
+    Raises:
+        TypeError
+            If a value is not hashable
+    """
+
+    seen = set()
+    seen_add = seen.add
+
+    # this allows for it to be called every iteration
+    # noinspection none-function-assignment
+    return [x for x in lst if not (x in seen or seen_add(x))]
 
 class Request[A, B]:
     """

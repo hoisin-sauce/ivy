@@ -8,6 +8,7 @@ from types import GenericAlias
 from datalib import type_processing
 # TODO cleanup how imports are managed
 # TODO implement __all__ to limit what can be imported from this module
+# TODO allow for functions applied to data like count(*) to be expressed
 
 
 class ConditionCombination(StrEnum):
