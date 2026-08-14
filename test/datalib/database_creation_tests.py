@@ -40,6 +40,16 @@ def test_iter():
         StandardPrimaryKeyResolver())
     schema_translator.translate_schema(table_structure)
 
+def test_union():
+    from test.datalib import test_data_union as test_data
+    db = schema.ClassDependencyGraph((test_data,))
+    table_structure = schema.TableStructure(db, StandardTableNamer())
+    schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
+        StandardPrimaryKeyResolver()
+    )
+    translated = schema_translator.translate_schema(table_structure)
+    print(translated.query_to_database)
+
 def test_modeldata_table_initialisation():
     db = schema.ClassDependencyGraph((modeldata,))
     table_structure = schema.TableStructure(db, StandardTableNamer())

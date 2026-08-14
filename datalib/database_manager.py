@@ -46,6 +46,6 @@ class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABC
         database_output: DataProcessingType = self.database_request_manager.execute_query(query_representation)
         return self.database_output_processor.get_output(database_output)
 
-    def insert_single(self, obj: Any) -> None: # TODO refactor
+    def insert_single(self, obj: Any) -> None:
         insertion_representation: DatabaseInteractionType = self.insertion_translator.translate_insertion(obj)
         self.database_request_manager.execute_query(insertion_representation)

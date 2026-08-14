@@ -99,7 +99,7 @@ class QueryBundle[*Ts]:
     expected_type_signature: type[*Ts]
     queries: tuple[Query, ...]
 
-    def __init__(self, elements: tuple[Query, ...]) -> None: # TODO do not expose
+    def __init__(self, elements: tuple[Query, ...]) -> None: # Note - should not be exposed in __all__
         assert all(map(lambda x: isinstance(x, Query), elements)), "Query bundles can only contain queries"
         assert len(set(map(lambda x: x.executor, elements))) == 1, "Queries in a query bundle must share the same executor"
         self.expected_types = tuple(q.expected_type for q in elements)
@@ -127,7 +127,7 @@ class QueryBundle[*Ts]:
                elements: tuple[Query[Any], ...]) -> "QueryBundle":
         return cls(elements)
 
-Bundle = QueryBundle.create # TODO Only expose this
+Bundle = QueryBundle.create
 
 @dataclass
 class Condition:
@@ -155,7 +155,7 @@ class Condition:
 @dataclass
 class ObjectAttribute: # How do we deal with iterables or other such things
     """
-    Represents a database field # TODO resolve duplication about how database fields are represented
+    Represents a database field
     Does not support comparison except in creating conditions based on the
     attribute described by the object.
     All comparisons will effectively evaluate to true as they are overloaded

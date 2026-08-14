@@ -1,6 +1,4 @@
 """Standardised interface for naming tables
-
-TODO approach should be more planned out
 """
 from abc import abstractmethod, ABCMeta
 from datalib.datatypes import Table

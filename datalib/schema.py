@@ -178,7 +178,7 @@ class TableStructure:
                 [datatype, union_alias])
 
             self.add_table(cls)
-            number_mapping[i] = datatype.__name__
+            number_mapping[i] = datatype.__name__ # TODO find a better way of mapping this so that names return the same each time order agnostically
 
         # TODO store number mapping somewhere appropriate to allow for it to be picked up
         return ForeignKey(to=table_reference, name=field_name), None

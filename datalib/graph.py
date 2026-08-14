@@ -80,7 +80,7 @@ class ClassDependencyGraph:
         while completable:
             processing: Type = completable.pop(0)
 
-            # TODO make enum tables option should not exist
+            # TODO process enums table in graph should exist
             if not db_utils.safe_is_subclass(processing, Enum):
                 build_order.append(processing)
 

@@ -208,10 +208,10 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
 
     def translate_standard_constant(self, fragment: const.BASIC_TYPE_HINT) -> SQLiteConditionFragment:
         del self # To allow for a standard signature
+        # TODO fix sql injection
         return SQLiteConditionFragment(str(fragment), list())
 
     def translate_nested_field(self, fragment: ObjectAttribute) -> SQLiteConditionFragment:
-        # TODO verify functionality after database implementation
 
         assert isinstance(fragment.object_type, ObjectAttribute)
         assert fragment.attribute_type in self.schema.table_lookups
