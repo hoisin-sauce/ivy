@@ -59,7 +59,7 @@ class DatabaseOutputProcessor[OutputType](metaclass=ABCMeta):
     # TODO create lazy evaluation of subclass attributes
     """
     @abstractmethod
-    def get_output[T](self, database_output: DatabaseOutput[OutputType, T]) -> Generator[T]:
+    def get_output[T](self, database_output: DatabaseOutput[OutputType, T]) -> Generator[T, None, None]:
         ...
 
 class InsertionTranslator[OutputType](metaclass=ABCMeta):

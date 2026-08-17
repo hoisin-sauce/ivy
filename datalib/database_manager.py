@@ -41,7 +41,7 @@ class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABC
         self.insert_single(objects)
         return True
 
-    def execute_query[T](self, query: Query[T]) -> Generator[T]:
+    def execute_query[T](self, query: Query[T]) -> Generator[T, None, None]:
         query_representation: QueryToBeResolved[T, DatabaseInteractionType] = self.query_resolver.translate_query(query)
         database_output: DataProcessingType = self.database_request_manager.execute_query(query_representation)
         return self.database_output_processor.get_output(database_output)

@@ -63,3 +63,4 @@ if __name__ == "__main__":
     test_enum()
     test_iter()
     test_optional_foreign()
+    test_union()
