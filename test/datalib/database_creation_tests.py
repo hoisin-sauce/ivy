@@ -48,7 +48,7 @@ def test_union():
         StandardPrimaryKeyResolver()
     )
     translated = schema_translator.translate_schema(table_structure)
-    print(translated.query_to_database)
+    print(translated.query_to_database.query_string)
 
 def test_modeldata_table_initialisation():
     db = schema.ClassDependencyGraph((modeldata,))

@@ -16,7 +16,7 @@ class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABC
     field_namer: datalib.naming.TableNamer
     query_resolver: QueryTranslator[DatabaseInteractionType]
     insertion_translator: InsertionTranslator[DatabaseInteractionType]
-    database_request_manager: DatabaseRequestManger[DatabaseInteractionType, DataProcessingType]
+    database_request_manager: DatabaseRequestManger[DatabaseInteractionType, DataProcessingType] # TODO Note allow for a memory option when implementing sqlite
     database_output_processor: DatabaseOutputProcessor[DataProcessingType]
     schema_translator: SchemaTranslator[DatabaseInteractionType]
 

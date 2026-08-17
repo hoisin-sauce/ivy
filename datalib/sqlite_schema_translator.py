@@ -48,7 +48,7 @@ class SQLiteTranslatedSchema:
             table_create_statements.append(self.get_table_create_statement(table))
 
         schema_string = "\n".join(table_create_statements)
-        return QueryToBeResolved(SQLiteString(schema_string), const.NONE_TYPE)
+        return QueryToBeResolved(SQLiteString(schema_string, dict()), const.NONE_TYPE)
 
     def get_table_create_statement(self, table: Table) -> str:
         database_creation_string = get_table_create_start(table.name)

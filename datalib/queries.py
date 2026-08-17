@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from collections.abc import Iterable, Generator
 from typing import Any, Unpack, Tuple, overload, Self, Callable, TypeVar
-from types import GenericAlias
+from types import GenericAlias, UnionType
 from datalib import type_processing
 # TODO cleanup how imports are managed
 # TODO implement __all__ to limit what can be imported from this module
@@ -50,9 +50,9 @@ class Query[T]:
     object, e.g.
 
     Example::
-        >>> from datalib.database_handle import DatabaseManager
+        >>> from datalib.database_manager import DatabaseManager
         >>> IntermediateType = TypeVar("IntermediateType")
-        >>> db: DatabaseManager[IntermediateType] # Database handle
+        >>> db: DatabaseManager[IntermediateType, IntermediateType] # Database handle
         >>> db.select(A).where(A["a"]==1) == query
 
     Which should allow for simpler, more pythonic interaction and less
@@ -134,8 +134,8 @@ class Condition:
     """
     A condition applied as part of a query
     """
-    left: "ObjectAttribute | Condition"
-    right: "ObjectAttribute | type | Condition | Any"
+    left: "ObjectAttribute | type | GenericAlias | UnionType | Condition | Any"
+    right: "ObjectAttribute | type | GenericAlias | UnionType | Condition | Any"
     operator: ConditionOperator | ConditionCombination
 
     def __post_init__(self) -> None:

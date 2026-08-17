@@ -32,7 +32,7 @@ def test_basic_query():
                       "FROM"
                       "test_datalib_test_data_query_tables__SampleChild;")
 
-    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
+    assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_from_interface():
     from test.datalib import test_data_query_tables as query_data
@@ -50,7 +50,7 @@ def test_query_from_interface():
                       "FROM"
                       "test_datalib_test_data_query_tables__SampleChild;")
 
-    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
+    assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_basic_valid_condition():
     from test.datalib import test_data_query_tables as query_data
@@ -73,9 +73,10 @@ def test_query_basic_valid_condition():
                       "FROM"
                       "test_datalib_test_data_query_tables__SampleChild"
                       "WHERE"
-                      "(test_datalib_test_data_query_tables__SampleChild.a = 1);")
+                      "(test_datalib_test_data_query_tables__SampleChild.a = :param_1);")
 
-    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
+    assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
+    assert translated_q.query_to_database.inserted_values["param_1"] == 1
 
 def test_query_subscripting_field():
     from test.datalib import test_data_query_tables as query_data
@@ -104,7 +105,7 @@ def test_query_subscripting_field():
                     "(test_datalib_test_data_query_tables__SampleParent.child = test_datalib_test_data_query_tables__SampleGrandparent.child);"
     )
 
-    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_q)
+    assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_q)
 
 def test_multiple_subscripting_fields():
     from test.datalib import test_data_query_tables as query_data
@@ -131,7 +132,7 @@ def test_multiple_subscripting_fields():
                         "(test_datalib_test_data_query_tables__SampleParent.child = test_datalib_test_data_query_tables__SampleGrandparent.child);"
     )
 
-    assert remove_whitespace(translated_q.query_to_database) == remove_whitespace(expected_query)
+    assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_combination():
     query_1 = Query(int, blank_database_interface.execute_query)
@@ -155,6 +156,11 @@ def test_field_with_multiple_types():
 
     q = blank_database_interface.select(query_data.CouldHaveParentOrGrandparent).where(query_data.CouldHaveParentOrGrandparent["simpler_concept"] == 1)
 
+def test_union_simple():
+    from test.datalib import test_data_union as query_data
+    make_module_subscriptable(query_data)
+    print_schema(query_data)
+
 def setup_translation_environment(module: ModuleType) -> SQLiteQueryTranslator:
     make_module_subscriptable(module)
     creation_graph = ClassDependencyGraph((module,))
@@ -163,14 +169,14 @@ def setup_translation_environment(module: ModuleType) -> SQLiteQueryTranslator:
     return sqlite_query_translator
 
 def print_translated_query[T](translated_query: QueryToBeResolved[T, SQLiteString]):
-    print("\n" + translated_query.query_to_database)
+    print("\n" + translated_query.query_to_database.query_string)
 
 def print_schema(module: ModuleType):
     creation_graph = ClassDependencyGraph((module,))
     table_structure = TableStructure(creation_graph, StandardTableNamer())
     sqlite_schema_translator = SQLiteSchemaTranslator(StandardPrimaryKeyResolver())
     schema = sqlite_schema_translator.translate_schema(table_structure)
-    print(schema.query_to_database)
+    print(schema.query_to_database.query_string)
 
 if __name__ == "__main__":
     test_basic_query()

@@ -23,6 +23,9 @@ class TableStructure:
     def __init__(self, graph: ClassDependencyGraph, namer: TableNamer):
         self.tables: list[Table] = list()
         self.enum_lookups: dict[tuple[type, str], dict] = dict()
+        self.union_key_lookups: dict[str, dict[int, type]] = dict()
+        self.union_child_lookups: dict[Table, list[Table]] = dict()
+        self.union_child_tables: set[Table] = set()
         self.table_lookups: dict[type, Table] = dict()
         self.backwards_table_lookups: dict[Table, type] = dict()
         self.namer = namer
@@ -168,17 +171,20 @@ class TableStructure:
 
         table_reference = self.add_table(union_alias)
 
-        # Unused - may be necessary
-        # Records the mapping of table numbers to their names
-        number_mapping: dict[int, str] = dict()
+        child_tables: list[Table] = list()
 
         for i, datatype in enumerate(possible_types):
             cls = type_processing.create_annotated_datatype(
                 self.namer.name_union_member(parent, field_name, datatype),
                 [datatype, union_alias])
 
-            self.add_table(cls)
-            number_mapping[i] = datatype.__name__ # TODO find a better way of mapping this so that names return the same each time order agnostically
+
+            table = self.add_table(cls)
+            child_tables.append(table)
+
+        self.union_key_lookups[field_name] = dict(enumerate(sorted(possible_types, key=lambda x: x.__name__)))
+        self.union_child_lookups[parent] = child_tables
+        self.union_child_tables = self.union_child_tables.union(child_tables)
 
         # TODO store number mapping somewhere appropriate to allow for it to be picked up
         return ForeignKey(to=table_reference, name=field_name), None

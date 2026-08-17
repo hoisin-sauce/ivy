@@ -42,14 +42,23 @@ def add_indent(string: str, indent_amount: int) -> str:
 class SQLiteConditionFragment:
     where_string: str
     join_strings: list[str] # order is necessary
+    parameters: dict[str, Any]
 
-    def get_tuple(self) -> tuple[str, list[str]]:
-        return self.where_string, self.join_strings
+    def get_tuple(self) -> tuple[str, list[str], dict[str, Any]]:
+        return self.where_string, self.join_strings, self.parameters
 
-# Note - only expose this
-@dataclass
+
 class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
+
     schema: TableStructure
+
+    def __init__(self, schema: TableStructure) -> None:
+        self.schema = schema
+        self.param_count: int = 0
+
+    def get_parameter_name(self) -> str:
+        self.param_count += 1
+        return f"param_{self.param_count}"
 
     def translate_query[T](self, query: Query[T]) -> QueryToBeResolved[
         T, SQLiteString]:
@@ -60,19 +69,21 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         conditions = query.conditions
 
 
-        query_string = select_all_from(table.name)
+        query_string: str = select_all_from(table.name)
+        query_parameters: dict[str, str] = {}
 
         if conditions:
-            where_string, join_string = self.resolve_conditions(conditions)
+            where_string, join_string, parameters = self.resolve_conditions(conditions)
 
             query_string += join_string
             query_string += where_string
+            query_parameters.update(parameters)
 
         query_string += end_select_statement()
-        sqlite_query_string = SQLiteString(query_string)
+        sqlite_query_string = SQLiteString(query_string, query_parameters)
         return QueryToBeResolved[T, SQLiteString](sqlite_query_string, query.expected_type)
 
-    def resolve_conditions(self, conditions: Iterable[Condition]) -> tuple[str, str]:
+    def resolve_conditions(self, conditions: Iterable[Condition]) -> tuple[str, str, dict[str, Any]]:
         """
         Resolves a container of conditions and returns the full join and where clauses
         Args:
@@ -87,14 +98,17 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         join_string = ""
         where_string = get_condition_opener()
 
+        query_parameters: dict[str, str] = {}
+
         for condition in conditions:
-            sub_where_string, sub_join_string = \
+            sub_where_string, sub_join_string, parameters = \
                 self.resolve_condition(condition).get_tuple()
 
             join_string += "".join(sub_join_string)
             where_string += sub_where_string
+            query_parameters.update(parameters)
 
-        return where_string, join_string
+        return where_string, join_string, query_parameters
 
     def resolve_condition(self, condition: Condition) -> SQLiteConditionFragment:
         """
@@ -109,28 +123,16 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         return self.resolve_condition_fragment(condition)
 
     def resolve_condition_fragment(self, fragment: Any) -> SQLiteConditionFragment:
-        # we want to implement conversion implementation here
-        # this is for logic flow # TODO refactor for this
-        # We want explicitly isinstance checks rather than match because????
-        # note: this code is definitely not backwards compatible
-        # The whole framework requires typing to function as intended ideally
-
         if isinstance(fragment, Condition):
             if isinstance(fragment.operator, ConditionCombination):
-                # indent sub block
                 return self.translate_condition_combination_fragment(fragment)
+
             elif isinstance(fragment.operator, ConditionOperator):
-                # have inline
-                # note that we will have to implement in here
                 return self.translate_condition_operator_fragment(fragment)
             else:
-                # Note - should be unreachable
-                raise NotImplementedError(
-                    "Supplied condition type is not supported")
+                raise NotImplementedError("Supplied condition type is not supported")
 
         if isinstance(fragment, ObjectAttribute):
-            # resolve the table necessities
-            ...
             if isinstance(fragment.object_type, ObjectAttribute):
                 return self.translate_nested_field(fragment)
 
@@ -140,19 +142,9 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
             raise NotImplementedError(f"ObjectAttributes of parent type {type(fragment.object_type).__name__} are not yet supported")
 
         if isinstance(fragment, type):
-            # resolve table reference and find primary key
-            # ooooh this one might have some issues
-            # we can't restructure schema for this one
-            ...
             raise NotImplementedError(
                 "References to classes as a whole are not yet supported")
 
-        # We are now left with only a sepecific value to compare to not just a
-        # Different part of the table
-        # Should we verify functionality of the SQL?
-        # I think that we have to resolve the issues
-        # We are now approached with the idea of concurrency
-        # What strategy is to be
         if isinstance(fragment, tuple(const.BASIC_TYPES)):
             return self.translate_standard_constant(fragment)
 
@@ -162,9 +154,9 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         assert isinstance(fragment, Condition)
         assert isinstance(fragment.operator, ConditionCombination)
 
-        resolved_left, join_l = self.resolve_condition_fragment(fragment.left).get_tuple()
+        resolved_left, join_l, params_left = self.resolve_condition_fragment(fragment.left).get_tuple()
         resolved_operator = fragment.operator.value
-        resolved_right, join_r = self.resolve_condition_fragment(fragment.right).get_tuple()
+        resolved_right, join_r, params_right = self.resolve_condition_fragment(fragment.right).get_tuple()
 
         where_string: str = add_indent(
             f"(\n\t{resolved_left}\n{resolved_operator}\n\t{resolved_right}\n)",
@@ -172,21 +164,31 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
 
         join_strings: list[str] = remove_duplicates_preserving_order(join_l + join_r)
 
-        return SQLiteConditionFragment(where_string, join_strings)
+        return SQLiteConditionFragment(where_string, join_strings, params_left | params_right)
 
     def translate_condition_operator_fragment(self, fragment: Condition) -> SQLiteConditionFragment:
+        """
+        Translate a condition where the comparison taking place compares values rather than truth
+        E.G. field_a == field_b, not CONDITION and OTHER_CONDITION
+        Args:
+            fragment:
+                The part of the query that we are translating
+        Returns:
+            An SQLiteConditionFragment representing the string form of the
+            query, any necessary joins and values for parameters.
+        """
         assert isinstance(fragment, Condition)
         assert isinstance(fragment.operator, ConditionOperator)
 
-        resolved_left, join_l = self.resolve_condition_fragment(fragment.left).get_tuple()
+        resolved_left, join_l, params_l = self.resolve_condition_fragment(fragment.left).get_tuple()
         operation = fragment.operator.value
-        resolved_right, join_r = self.resolve_condition_fragment(fragment.right).get_tuple()
+        resolved_right, join_r, params_r = self.resolve_condition_fragment(fragment.right).get_tuple()
 
         where_string = f"({resolved_left} {operation} {resolved_right})"
 
         join_strings: list[str] = remove_duplicates_preserving_order(join_l + join_r)
 
-        return SQLiteConditionFragment(where_string, join_strings)
+        return SQLiteConditionFragment(where_string, join_strings, params_l | params_r)
 
     def translate_non_nested_field(self, fragment: ObjectAttribute) -> SQLiteConditionFragment:
         """
@@ -204,12 +206,12 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
         table = self.schema.table_lookups[fragment.object_type]
         field_name = fragment.attribute_name
 
-        return SQLiteConditionFragment(f"{table.name}.{field_name}", list())
+        return SQLiteConditionFragment(f"{table.name}.{field_name}", list(), dict())
 
     def translate_standard_constant(self, fragment: const.BASIC_TYPE_HINT) -> SQLiteConditionFragment:
-        del self # To allow for a standard signature
-        # TODO fix sql injection
-        return SQLiteConditionFragment(str(fragment), list())
+        param_name: str = self.get_parameter_name()
+
+        return SQLiteConditionFragment(f":{param_name}", list(), {param_name: fragment})
 
     def translate_nested_field(self, fragment: ObjectAttribute) -> SQLiteConditionFragment:
 
@@ -268,9 +270,10 @@ class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
 
             parent = grandparent
 
-        return SQLiteConditionFragment(where_string, required_joins)
+        return SQLiteConditionFragment(where_string, required_joins, dict())
 
 
 # TODO refactor where statements into their own functions
 # TODO allow for the resolving of union fields
 # Note - my honest opinion is that this strategy of resolving the fields at present is a bit naive in approaching resolving union fields
+__all__ = ["SQLiteQueryTranslator"]
