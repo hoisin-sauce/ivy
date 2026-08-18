@@ -100,7 +100,7 @@ def test_query_subscripting_field():
                     "test_datalib_test_data_query_tables__SampleGrandparent.*"
                     "FROM"
                     "	test_datalib_test_data_query_tables__SampleGrandparent"
-                    "INNER JOIN test_datalib_test_data_query_tables__SampleParent ON test_datalib_test_data_query_tables__SampleParent.test_datalib_test_data_query_tables__SampleParentid = test_datalib_test_data_query_tables__SampleGrandparent.parent"
+                    "INNER JOIN test_datalib_test_data_query_tables__SampleParent ON test_datalib_test_data_query_tables__SampleParent.id = test_datalib_test_data_query_tables__SampleGrandparent.parent"
                     "WHERE"
                     "(test_datalib_test_data_query_tables__SampleParent.child = test_datalib_test_data_query_tables__SampleGrandparent.child);"
     )
@@ -126,8 +126,8 @@ def test_multiple_subscripting_fields():
 	                    "test_datalib_test_data_query_tables__SampleGreatGrandparent.*"
                         "FROM"
                         "	test_datalib_test_data_query_tables__SampleGreatGrandparent"
-                        "INNER JOIN test_datalib_test_data_query_tables__SampleGrandparent ON test_datalib_test_data_query_tables__SampleGrandparent.test_datalib_test_data_query_tables__SampleGrandparentid = test_datalib_test_data_query_tables__SampleGreatGrandparent.grandparent"
-                        "INNER JOIN test_datalib_test_data_query_tables__SampleParent ON test_datalib_test_data_query_tables__SampleParent.test_datalib_test_data_query_tables__SampleParentid = test_datalib_test_data_query_tables__SampleGrandparent.parent"
+                        "INNER JOIN test_datalib_test_data_query_tables__SampleGrandparent ON test_datalib_test_data_query_tables__SampleGrandparent.id = test_datalib_test_data_query_tables__SampleGreatGrandparent.grandparent"
+                        "INNER JOIN test_datalib_test_data_query_tables__SampleParent ON test_datalib_test_data_query_tables__SampleParent.id = test_datalib_test_data_query_tables__SampleGrandparent.parent"
                         "WHERE"
                         "(test_datalib_test_data_query_tables__SampleParent.child = test_datalib_test_data_query_tables__SampleGrandparent.child);"
     )
@@ -135,14 +135,14 @@ def test_multiple_subscripting_fields():
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_combination():
-    query_1 = Query(int, blank_database_interface.execute_query)
-    query_2 = Query(str, blank_database_interface.execute_query)
+    query_1 = Query[int](int, blank_database_interface.execute_query)
+    query_2 = Query[str](str, blank_database_interface.execute_query)
     combined_query: QueryBundle[int, str] = QueryBundle.create((query_1, query_2))
 
     assert combined_query.expected_types == (int, str)
 
-    query_3 = Query(bool, blank_database_interface.execute_query)
-    doubly_combined_query = QueryBundle.create((query_1, query_2, query_3))
+    query_3 = Query[bool](bool, blank_database_interface.execute_query)
+    doubly_combined_query: QueryBundle[int, str, bool] = QueryBundle.create((query_1, query_2, query_3))
 
     assert doubly_combined_query.expected_types == (int, str, bool)
 

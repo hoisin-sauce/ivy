@@ -153,6 +153,7 @@ class TableStructure:
         Returns:
 
         """
+        # TODO restructure output table to rather than switch between tables switch between columns
         possible_types = typing.get_args(field_type)
 
         # If the field contains a NoneType value then it is optional

@@ -91,4 +91,4 @@ class StandardTableNamer(TableNamer):
         return "field_to_data"
 
     def name_primary_key(self, table: Table) -> str:
-        return f"{table.name}id"
+        return f"id"
