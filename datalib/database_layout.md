@@ -1,3 +1,5 @@
+from datalib.database_types import SQLiteString
+
 ## Database Layout
 [TODO Alter database to match the specified formatting]: #
 # Classes
@@ -55,6 +57,7 @@ CREATE TABLE db_a (
     FOREIGN KEY (field) REFERENCES db_a_field_union_selector(id)
 );
 ```
+Querying these fields requires specifying the datatype being referenced.
 ## Iterable fields
 ## References to other Classes
 When a class contains another field that is another class, instead of storing the data representing that class, the field is replaced with a reference to that class's table. If the class is not specified to be part of the database it is automatically added.
@@ -69,7 +72,7 @@ class B:
 ```
 In SQL, the relevant table creation command would be
 ```sqlite
-CREATE TABLE db_a(
+CREATE TABLE db_A(
     id INTEGER NOT NULL PRIMARY KEY,
     field INTEGER NOT NULL
 );
@@ -79,5 +82,32 @@ CREATE TABLE db_B(
     reference INTEGER NOT NULL,
     FOREIGN KEY (reference) REFERENCES db_a (id)
 );
+```
+Once the database file has been loaded, the fields can be used to make queries like so
+```python
+from datalib.database_manager import DatabaseManager
+from datalib.database_types import SQLiteString
+from typing import Generator
+
+class B:
+    ...
+
+# Setup database manager
+...
+dbi: DatabaseManager[SQLiteString, dict]
+
+data: Generator[B] = dbi.select(B).where(B["A"]["field"] == 1).get_values()
+```
+
+Where the objects returned in data match the output from the query
+```sqlite
+SELECT
+    *
+FROM
+    db_B
+INNER JOIN db_A
+ON db_A.id = db_B.reference
+WHERE
+    db_A.field = 1
 ```
 ## Enum Fields
