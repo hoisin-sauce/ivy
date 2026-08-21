@@ -173,11 +173,14 @@ class ObjectAttribute: # How do we deal with iterables or other such things
     attribute_name: str
 
     @property
-    def attribute_type(self) -> "type | GenericAlias":
-        object_type = self.object_type.attribute_type if isinstance(self.object_type, ObjectAttribute) else self.object_type
+    def attribute_type(self) -> "type | GenericAlias | UnionType":
+        object_type = self.object_type.attribute_type \
+            if isinstance(self.object_type, ObjectAttribute) else self.object_type
+
         hints = typing.get_type_hints(object_type)
         attribute_type = hints[self.attribute_name]
-        assert isinstance(attribute_type, (type, GenericAlias))
+
+        assert isinstance(attribute_type, (type, GenericAlias, UnionType))
         return attribute_type
 
     def is_valid_other(self, other):
@@ -208,10 +211,20 @@ class ObjectAttribute: # How do we deal with iterables or other such things
         return Condition(self, other, ConditionOperator.GREATER_THAN)
 
     def __getitem__(self, item) -> "ObjectAttribute":
-        # TODO verify implementation
+        # TODO extend functionality to allow for the syntax for union fields as described in database_layout.md
         if isinstance(attr_type := self.attribute_type, type):
-            assert item in typing.get_type_hints(attr_type), "Field must be an attribute of the base class"
-            return ObjectAttribute(self, item)
+            if item in typing.get_type_hints(attr_type):
+                return ObjectAttribute(self, item)
+
+        if isinstance(item, type):
+            # Figure out syntax for specialised field
+            raise Exception("We found it")
+
+        if isinstance(item, tuple):
+            if len(item) != 2:
+                raise SyntaxError("Tuple indexing of classes can only be done in the form (\"field\", type)")
+
+            # Check that we are indexing
         raise NotImplementedError("Need to implement subsequent getitem calls")
 
     def __getattr__(self, item):

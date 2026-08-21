@@ -57,7 +57,28 @@ CREATE TABLE db_a (
     FOREIGN KEY (field) REFERENCES db_a_field_union_selector(id)
 );
 ```
-Querying these fields requires specifying the datatype being referenced.
+Querying this requires one of the following syntaxes,
+
+```python
+from datalib.database_manager import DatabaseManager
+from datalib.database_types import SQLiteString
+from typing import Generator
+
+class A:
+    field: int | str
+
+# Setup database
+...
+
+dbi: DatabaseManager[SQLiteString, dict]
+
+data = dbi.select(A["field"] == 1).get_values() # Implicit typing
+# OR
+data = dbi.select(A["field", int] == 1).get_values() # Specifying field typing
+# OR
+data = dbi.select(A["field"][int] == 1).get_values() # Specifying the type as an attribute
+```
+
 ## Iterable fields
 ## References to other Classes
 When a class contains another field that is another class, instead of storing the data representing that class, the field is replaced with a reference to that class's table. If the class is not specified to be part of the database it is automatically added.
@@ -96,7 +117,7 @@ class B:
 ...
 dbi: DatabaseManager[SQLiteString, dict]
 
-data: Generator[B] = dbi.select(B).where(B["A"]["field"] == 1).get_values()
+data: Generator[B, None, None] = dbi.select(B).where(B["A"]["field"] == 1).get_values()
 ```
 
 Where the objects returned in data match the output from the query

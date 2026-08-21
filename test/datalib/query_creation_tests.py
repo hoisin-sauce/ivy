@@ -152,9 +152,11 @@ def test_field_with_multiple_types():
     from test.datalib import test_data_query_tables as query_data
     make_module_subscriptable(query_data)
 
-    print_schema(query_data)
+    # print_schema(query_data)
 
-    q = blank_database_interface.select(query_data.CouldHaveParentOrGrandparent).where(query_data.CouldHaveParentOrGrandparent["simpler_concept"] == 1)
+    q = (blank_database_interface.select(
+        query_data.CouldHaveParentOrGrandparent)
+         .where(query_data.CouldHaveParentOrGrandparent["simpler_concept"][int] == 1))
 
 def test_union_simple():
     from test.datalib import test_data_union as query_data
