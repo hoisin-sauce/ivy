@@ -208,3 +208,42 @@ class Scheduler[A, B]:
             Nothing
         """
         ...
+
+# shock horror ai code
+def format_with_tabs(obj, indent=0):
+    """Recursively format a Python object into a string with tabs for indentation."""
+    tab = '\t'
+    indent_str = tab * indent
+
+    if isinstance(obj, dict):
+        if not obj:
+            return '{}'
+        lines = ['{']
+        for key, value in obj.items():
+            # repr(key) handles quoting for string keys and other key types
+            lines.append(f"{tab * (indent + 1)}{repr(key)}: {format_with_tabs(value, indent + 1)}")
+        lines.append(indent_str + '}')
+        return '\n'.join(lines)
+
+    elif isinstance(obj, (list, tuple)):
+        if not obj:
+            return '[]' if isinstance(obj, list) else '()'
+        lines = ['[' if isinstance(obj, list) else '(']
+        for item in obj:
+            lines.append(tab * (indent + 1) + format_with_tabs(item, indent + 1))
+        # Add trailing comma for single‑element tuples? Not required for representation.
+        lines.append(indent_str + (']' if isinstance(obj, list) else ')'))
+        return '\n'.join(lines)
+
+    elif isinstance(obj, set):
+        if not obj:
+            return 'set()'
+        lines = ['{']
+        for item in obj:
+            lines.append(tab * (indent + 1) + format_with_tabs(item, indent + 1))
+        lines.append(indent_str + '}')
+        return '\n'.join(lines)
+
+    else:
+        # For everything else (int, str, class objects, type unions, etc.)
+        return repr(obj)
