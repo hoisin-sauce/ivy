@@ -1,5 +1,3 @@
-from datalib.database_types import SQLiteString
-
 ## Database Layout
 [TODO Alter database to match the specified formatting]: #
 # Classes
