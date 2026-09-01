@@ -161,7 +161,13 @@ def test_field_with_multiple_types():
 def test_union_simple():
     from test.datalib import test_data_union as query_data
     make_module_subscriptable(query_data)
-    print_schema(query_data)
+    # print_schema(query_data)
+    # TODO write tests
+
+def test_iter_from_md():
+    from test.datalib import test_iter_from_markdown as qd
+    make_module_subscriptable(qd)
+    print_schema(qd)
 
 def setup_translation_environment(module: ModuleType) -> SQLiteQueryTranslator:
     make_module_subscriptable(module)
@@ -187,3 +193,4 @@ if __name__ == "__main__":
     test_query_subscripting_field()
     test_query_combination()
     test_multiple_subscripting_fields()
+    test_iter_from_md()

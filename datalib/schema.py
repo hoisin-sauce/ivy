@@ -247,7 +247,8 @@ class TableStructure:
             parent:
                 The parent table the field is going to be added to.
         Returns:
-
+            A Tuple containing the IterableField object and table that needs to be created afterwards
+        TODO allow for ordered types to be faithfully represented
         """
         # we need to create one table to store the inside of the iterable
         # we then need to create one table to store the link from the iterable
