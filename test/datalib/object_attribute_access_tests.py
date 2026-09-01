@@ -6,10 +6,18 @@ def test_basic_creation():
 
     object_attribute_testing.make_class_subscriptable(qt.CouldHaveParentOrGrandparent)
 
-    o = qt.CouldHaveParentOrGrandparent["parent_or_grandparent"]
+    o: object_attribute_testing.ObjectAttribute = qt.CouldHaveParentOrGrandparent["parent_or_grandparent"]
 
-    print()
-    print(format_with_tabs(object_to_dict(o)))
+    assert len(o.possible_attributes) == 2
+
+    specialised_o = o[qt.SampleParent]
+
+    assert len(specialised_o.possible_attributes) == 1
+
+    other_specialised_o = qt.CouldHaveParentOrGrandparent["parent_or_grandparent", qt.SampleParent]
+
+    assert len(other_specialised_o.possible_attributes) == 1
+    assert format_with_tabs(object_to_dict(specialised_o)) == format_with_tabs(object_to_dict(other_specialised_o))
 
 if __name__ == "__main__":
     test_basic_creation()
