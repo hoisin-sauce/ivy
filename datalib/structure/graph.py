@@ -2,9 +2,9 @@ from enum import Enum
 from typing import Type
 from types import ModuleType
 from collections.abc import Iterable
-import datalib.db_utils as db_utils
-from datalib import type_processing
-from datalib.datatypes import DataType
+import datalib.utils.db_utils as db_utils
+from datalib.utils import type_processing
+from datalib.structure.datatypes import DataType
 
 class FailedDatabaseInitialisationError(Exception):
     """

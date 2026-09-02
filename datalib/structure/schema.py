@@ -5,13 +5,12 @@ import types
 import typing
 from typing import Optional
 from collections.abc import Iterable
-import datalib.const as const
-from datalib import type_processing
-from datalib.graph import ClassDependencyGraph
-from datalib.datatypes import Table, PrimaryKey, ForeignKey, Field, IterableField, \
+import datalib.utils.const as const
+from datalib.utils import type_processing
+from datalib.structure.graph import ClassDependencyGraph
+from datalib.structure.datatypes import Table, PrimaryKey, ForeignKey, Field, IterableField, \
     TableField
-from datalib.naming import TableNamer
-from lm_utils import object_to_dict
+from datalib.structure.naming.naming import TableNamer
 
 
 class TableStructure:

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from typing import Generator, Any
 import typing
 
-from datalib.queries import Query, QueryBundle
-from datalib.schema import TableStructure
+from datalib.queries.deterministic.queries import Query, QueryBundle
+from datalib.structure.schema import TableStructure
 
 @dataclass
 class QueryToBeResolved[ExpectedOutputObjectType, DatabaseExpectedDatatype]:

@@ -1,6 +1,7 @@
-from datalib import schema, sqlite_schema_translator
-from datalib.database_constraint import StandardPrimaryKeyResolver
-from datalib.naming import StandardTableNamer
+from datalib.database.sqlite import sqlite_schema_translator
+from datalib.structure import schema
+from datalib.structure.database_constraint import StandardPrimaryKeyResolver
+from datalib.structure.naming.naming import StandardTableNamer
 import modeldata
 
 

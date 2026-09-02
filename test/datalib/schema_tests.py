@@ -1,8 +1,8 @@
 from types import ModuleType
 
-from datalib.naming import StandardTableNamer
-from datalib.schema import TableStructure
-from datalib.graph import ClassDependencyGraph
+from datalib.structure.naming.naming import StandardTableNamer
+from datalib.structure.schema import TableStructure
+from datalib.structure.graph import ClassDependencyGraph
 from lm_utils import object_to_dict
 
 

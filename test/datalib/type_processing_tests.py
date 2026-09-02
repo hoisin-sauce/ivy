@@ -1,4 +1,4 @@
-from datalib.type_processing import *
+from datalib.utils.type_processing import *
 
 def test_type_creation():
     new_type = create_annotated_datatype("foo", (int, str))

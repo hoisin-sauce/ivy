@@ -1,18 +1,18 @@
-from typing import Generator, Any
+from typing import Any
 
-from datalib.const import NONE_TYPE
-from datalib.database_types import NoData
-from datalib.naming import TableNamer, StandardTableNamer
-from datalib.queries import Query, QueryBundle
-from datalib.abstract_database_components import (
+from datalib.utils.const import NONE_TYPE
+from datalib.database.database_types import NoData
+from datalib.structure.naming.naming import TableNamer, StandardTableNamer
+from datalib.queries.deterministic.queries import Query, QueryBundle
+from datalib.database.abstract_database_components import (
     DatabaseRequestManger,
     QueryBundleTranslator,
     QueryTranslator,
     QueryToBeResolved,
     InsertionTranslator, SchemaTranslator, DatabaseOutput,
 )
-from datalib.database_manager import DatabaseManager
-from datalib.schema import TableStructure
+from datalib.database.database_manager import DatabaseManager
+from datalib.structure.schema import TableStructure
 
 
 class NoQueryBundleTranslator(QueryBundleTranslator[NoData]):

@@ -2,18 +2,18 @@ from abc import ABCMeta
 from collections.abc import Iterable
 from typing import Any, Optional, Generator
 
-import datalib.schema
-import datalib.naming
-from datalib.queries import Query
-from datalib.abstract_database_components import QueryTranslator, \
+import datalib.structure.schema
+import datalib.structure.naming.naming
+from datalib.queries.deterministic.queries import Query
+from datalib.database.abstract_database_components import QueryTranslator, \
     DatabaseRequestManger, \
     QueryToBeResolved, InsertionTranslator, SchemaTranslator, \
     DatabaseOutputProcessor
 
 
 class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABCMeta):
-    schema: datalib.schema.TableStructure
-    field_namer: datalib.naming.TableNamer
+    schema: datalib.structure.schema.TableStructure
+    field_namer: datalib.structure.naming.naming.TableNamer
     query_resolver: QueryTranslator[DatabaseInteractionType]
     insertion_translator: InsertionTranslator[DatabaseInteractionType]
     database_request_manager: DatabaseRequestManger[DatabaseInteractionType, DataProcessingType] # TODO Note allow for a memory option when implementing sqlite

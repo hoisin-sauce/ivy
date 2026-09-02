@@ -5,7 +5,7 @@ import typing
 from typing import Any, Mapping, Optional
 from types import ModuleType, UnionType, GenericAlias
 from collections.abc import Iterable
-import datalib.db_utils as db_utils
+import datalib.utils.db_utils as db_utils
 import enum
 
 def is_type(obj: Any) -> bool:

@@ -1,14 +1,10 @@
 """Stores the datatypes used to represent different parts of the modelling system
 """
-from dataclasses import dataclass
 from typing import Optional
 
-from datalib import type_processing
-from datalib import const
-from abc import ABCMeta, abstractmethod
-from collections.abc import Callable
+from datalib.utils import type_processing, const
 from dataclasses import dataclass
-import datalib.database_constraint
+
 
 # Graph
 

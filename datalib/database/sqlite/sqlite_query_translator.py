@@ -1,16 +1,15 @@
 from dataclasses import dataclass
-from secrets import token_urlsafe
-from typing import Any, Optional, Iterable
+from typing import Any, Iterable
 
-from datalib.abstract_database_components import QueryTranslator, \
+from datalib.database.abstract_database_components import QueryTranslator, \
     QueryToBeResolved
-from datalib.database_types import SQLiteString
-from datalib.datatypes import Table
-from datalib.queries import Query, Condition, ObjectAttribute, \
+from datalib.database.database_types import SQLiteString
+from datalib.structure.datatypes import Table
+from datalib.queries.deterministic.queries import Query, Condition, ObjectAttribute, \
     ConditionCombination, ConditionOperator
-from datalib.schema import TableStructure
-from datalib import const
-from lm_utils import object_to_dict, remove_duplicates_preserving_order
+from datalib.structure.schema import TableStructure
+from datalib.utils import const
+from lm_utils import remove_duplicates_preserving_order
 
 
 # text conversions

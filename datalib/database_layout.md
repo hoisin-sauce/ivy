@@ -58,23 +58,25 @@ CREATE TABLE db_a (
 Querying this requires one of the following syntaxes,
 
 ```python
-from datalib.database_manager import DatabaseManager
-from datalib.database_types import SQLiteString
+from datalib.database.database_manager import DatabaseManager
+from datalib.database.database_types import SQLiteString
 from typing import Generator
+
 
 class A:
     field: int | str
+
 
 # Setup database
 ...
 
 dbi: DatabaseManager[SQLiteString, dict]
 
-data = dbi.select(A["field"] == 1).get_values() # Implicit typing
+data = dbi.select(A["field"] == 1).get_values()  # Implicit typing
 # OR
-data = dbi.select(A["field", int] == 1).get_values() # Specifying field typing
+data = dbi.select(A["field", int] == 1).get_values()  # Specifying field typing
 # OR
-data = dbi.select(A["field"][int] == 1).get_values() # Specifying the type as an attribute
+data = dbi.select(A["field"][int] == 1).get_values()  # Specifying the type as an attribute
 ```
 
 ## Iterable fields
@@ -134,18 +136,22 @@ extend itself to objects which require a collection of sequences of arbitrary le
 to be properly represented.
 
 Data stored in these fields can be accessed by constructing a query such as
+
 ```python
-from datalib.database_manager import DatabaseManager
-from datalib.database_types import SQLiteString
+from datalib.database.database_manager import DatabaseManager
+from datalib.database.database_types import SQLiteString
 from typing import Generator
+
 
 # Same classes as earlier
 
 class Dummy:
     field: int
-    
+
+
 class DummyToo:
     field: str
+
 
 # Setup database manager
 ...
@@ -157,8 +163,8 @@ data = dbi.select(ListContainer).where(1 in ListContainer["field"]).get_values()
 
 # Or when constructing a query for another field
 data = dbi.select(Dummy).where(Dummy["field"] in ListContainer["field"] &
-                                            1 in ListContainer["field"]
-).get_values()
+                               1 in ListContainer["field"]
+                               ).get_values()
 ```
 
 For mappings such as dictionaries
@@ -219,13 +225,16 @@ CREATE TABLE db_B(
 );
 ```
 Once the database file has been loaded, the fields can be used to make queries like so
+
 ```python
-from datalib.database_manager import DatabaseManager
-from datalib.database_types import SQLiteString
+from datalib.database.database_manager import DatabaseManager
+from datalib.database.database_types import SQLiteString
 from typing import Generator
+
 
 class B:
     ...
+
 
 # Setup database manager
 ...

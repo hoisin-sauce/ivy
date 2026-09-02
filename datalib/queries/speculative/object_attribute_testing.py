@@ -6,7 +6,7 @@ from typing import Optional
 import typing
 import types
 
-from .db_utils import flatten_to_list
+from datalib.utils.db_utils import flatten_to_list
 
 @dataclass
 class Attribute:
@@ -194,9 +194,12 @@ def make_class_subscriptable[T](cls: type[T]) -> type[T]:
                 map(
                     lambda t: Attribute(name = item, attribute_type = t, parent = cls),
                     possible_attribute_types
-            ))
+                ))
 
             return ObjectAttribute(possible_attributes = possible_attributes)
+
+        if isinstance(attribute_target, types.GenericAlias):
+            ...
 
         raise AttributeError(f"{repr(item)} could not be resolved to an attribute of {cls.__name__}")
 

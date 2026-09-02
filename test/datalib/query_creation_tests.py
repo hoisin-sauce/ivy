@@ -1,16 +1,15 @@
 from types import ModuleType
 
-from datalib.abstract_database_components import QueryToBeResolved
-from datalib.database_constraint import PrimaryKeyResolver, \
-    StandardPrimaryKeyResolver
-from datalib.database_types import SQLiteString
-from datalib.naming import StandardTableNamer
-from datalib.no_data import NoDatabaseManager
-from datalib.queries import *
-from datalib.sqlite_query_translator import SQLiteQueryTranslator
-from datalib.graph import ClassDependencyGraph
-from datalib.schema import TableStructure
-from datalib.sqlite_schema_translator import SQLiteSchemaTranslator
+from datalib.database.abstract_database_components import QueryToBeResolved
+from datalib.structure.database_constraint import StandardPrimaryKeyResolver
+from datalib.database.database_types import SQLiteString
+from datalib.structure.naming.naming import StandardTableNamer
+from datalib.database.nodata.no_data import NoDatabaseManager
+from datalib.queries.deterministic.queries import *
+from datalib.database.sqlite.sqlite_query_translator import SQLiteQueryTranslator
+from datalib.structure.graph import ClassDependencyGraph
+from datalib.structure.schema import TableStructure
+from datalib.database.sqlite.sqlite_schema_translator import SQLiteSchemaTranslator
 
 from lm_utils import remove_whitespace
 

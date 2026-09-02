@@ -1,15 +1,15 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-import datalib.const as const
-from datalib.abstract_database_components import SchemaTranslator, QueryToBeResolved
+import datalib.utils.const as const
+from datalib.database.abstract_database_components import SchemaTranslator, QueryToBeResolved
 
-from datalib.database_types import SQLiteString
-from datalib.datatypes import (Table, TableField, PrimaryKey, ForeignKey,
-                               IterableField, Field)
-from datalib.database_constraint import *
-import datalib.database_constraint as database_constraint
-from datalib.schema import TableStructure
+from datalib.database.database_types import SQLiteString
+from datalib.structure.datatypes import (Table, TableField, PrimaryKey, ForeignKey,
+                                         IterableField, Field)
+from datalib.structure.database_constraint import *
+import datalib.structure.database_constraint as database_constraint
+from datalib.structure.schema import TableStructure
 
 
 def get_table_create_start(table_name: str) -> str:

@@ -1,7 +1,7 @@
 """Standardised interface for naming tables
 """
 from abc import abstractmethod, ABCMeta
-from datalib.datatypes import Table
+from datalib.structure.datatypes import Table
 
 
 class Namer(metaclass=ABCMeta):

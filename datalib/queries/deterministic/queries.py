@@ -2,10 +2,12 @@ import types
 import typing
 from dataclasses import dataclass
 from enum import StrEnum
-from collections.abc import Iterable, Generator
-from typing import Any, Unpack, Tuple, overload, Self, Callable, TypeVar
+from collections.abc import Generator
+from typing import Any, overload, Callable, TypeVar
 from types import GenericAlias, UnionType
-from datalib import type_processing
+from datalib.utils import type_processing
+
+
 # TODO cleanup how imports are managed
 # TODO implement __all__ to limit what can be imported from this module
 # TODO allow for functions applied to data like count(*) to be expressed
