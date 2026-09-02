@@ -6,7 +6,7 @@ from datalib.database.database_types import SQLiteString
 from datalib.structure.naming.naming import StandardTableNamer
 from datalib.database.nodata.no_data import NoDatabaseManager
 from datalib.queries.deterministic.queries import *
-from datalib.database.sqlite.sqlite_query_translator import SQLiteQueryTranslator
+from datalib.database.sqlite.sqlite_deterministic_query_translator import SQLiteQueryTranslator
 from datalib.structure.graph import ClassDependencyGraph
 from datalib.structure.schema import TableStructure
 from datalib.database.sqlite.sqlite_schema_translator import SQLiteSchemaTranslator

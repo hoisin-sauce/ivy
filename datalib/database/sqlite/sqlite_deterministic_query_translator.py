@@ -1,3 +1,6 @@
+""" Translates the limited DeterministicQuery objects into sqlite query text
+"""
+import warnings
 from dataclasses import dataclass
 from typing import Any, Iterable
 
@@ -16,47 +19,130 @@ from lm_utils import remove_duplicates_preserving_order
 # text conversions
 
 def select_all_from(table_name: str) -> str:
+    """
+    Generates the text to select all from a table
+    Args:
+        table_name:
+            Name of the table
+    Returns:
+        Opening string query for the select all statement
+    """
     return f"SELECT\n\t{table_name}.*\nFROM\n\t{table_name}"
 
 
 def get_condition_opener() -> str:
+    """
+    Returns the opening to the conditions section
+    Returns:
+        Opening string to the conditions section
+    """
     return "\nWHERE\n"
 
 
 def end_select_statement() -> str:
+    """
+    Returns the suffix of the sqlite statement
+    Returns:
+        The suffix of the sqlite statement
+    """
     return f";"
 
 def join_statement(new_table_name: str, new_table_join_on: str,
                    old_table_name: str, old_table_join_on: str) -> str:
+    """
+    Constructs a join statement between two tables on two specified fields
+    Args:
+        new_table_name
+            The new table that we are introducing
+        new_table_join_on
+            The field that we are joining the new table from
+        old_table_name
+            The table currently in scope that we are using to join the old table
+        old_table_join_on
+            The field from the table in scope that we are joining on
+
+    Returns:
+        A string holding a portion of an sqlite statement that will join the two provided tables
+    """
     return (f"\nINNER JOIN {new_table_name} "
             f"ON {new_table_name}.{new_table_join_on} "
             f"= {old_table_name}.{old_table_join_on}")
 
 
 def add_indent(string: str, indent_amount: int) -> str:
+    """
+    Adds indent to each line of the provided string
+    Args:
+        string
+            string to add indent to
+        indent_amount
+            amount of indents to be added - must be positive
+
+    Returns:
+        The input string with each of the lines indented the required amount
+    """
     lines = string.splitlines()
     line_prefix = "\n" + "\t" * indent_amount
     return line_prefix.join(lines)
 
 @dataclass
 class SQLiteConditionFragment:
+    """
+    An object representing a portion of an SQLite condition
+
+    Attributes:
+        where_string
+            holds the necessary additions to the where string
+        join_strings
+            holds strings representing any joins that may be necessary
+        parameters
+            holds a dictionary of values to be inserted into the string to allow for safe query creation
+    """
     where_string: str
     join_strings: list[str] # order is necessary
     parameters: dict[str, Any]
 
     def get_tuple(self) -> tuple[str, list[str], dict[str, Any]]:
+        """
+        Returns a tuple representation of the object
+        Returns:
+            A tuple of the object's fields in the order:
+
+            where_string, join_strings, parameters
+        """
         return self.where_string, self.join_strings, self.parameters
 
 
+@warnings.deprecated("Deterministic Queries are limited in their expressibility and as such are no longer under development")
 class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
+    """
+    Implementation of the QueryTranslator interface mapping a query of type
+    datalib.queries.deterministic.DeterministicQuery to the output of type datalib.database.database_types.SQLiteString
+
+    Attributes:
+        schema
+            A TableStructure object representing the database
+    """
 
     schema: TableStructure
 
     def __init__(self, schema: TableStructure) -> None:
+        """Initialises the query translator instance based on the provided table structure
+
+        Args:
+            schema
+                TableStructure object holding the layout of the database this object will translate queries for
+        """
         self.schema = schema
         self.param_count: int = 0
 
     def get_parameter_name(self) -> str:
+        """
+        Get a unique name for a new parameter to avoid collisions
+        Note - this implementation will eventually result in issues with long runtime
+        Returns:
+            Unique parameter name
+        """
         self.param_count += 1
         return f"param_{self.param_count}"
 
@@ -273,7 +359,4 @@ class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
         return SQLiteConditionFragment(where_string, required_joins, dict())
 
 
-# TODO refactor where statements into their own functions
-# TODO allow for the resolving of union fields
-# Note - my honest opinion is that this strategy of resolving the fields at present is a bit naive in approaching resolving union fields
 __all__ = ["SQLiteQueryTranslator"]
