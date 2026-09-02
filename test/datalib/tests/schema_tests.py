@@ -12,7 +12,7 @@ def create_schema(module_target: ModuleType) -> TableStructure:
     return table_structures
 
 def test_table_access():
-    from test.datalib import test_data_foreign as test_module
+    from test.datalib.data import test_data_foreign as test_module
     schema = create_schema(test_module)
     data_field = schema.table_lookups[test_module.ExampleForeign].get_field("data")
     if data_field:

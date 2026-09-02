@@ -18,7 +18,7 @@ def test_modeldata_graph_initialisation():
         "Some classes were not initialised"
 
 def test_optional_foreign():
-    from test.datalib import test_data_foreign as test_data
+    from test.datalib.data import test_data_foreign as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
@@ -26,7 +26,7 @@ def test_optional_foreign():
     schema_translator.translate_schema(table_structure)
 
 def test_enum():
-    from test.datalib import test_data_enum as test_data
+    from test.datalib.data import test_data_enum as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
@@ -34,7 +34,7 @@ def test_enum():
     schema_translator.translate_schema(table_structure)
 
 def test_iter():
-    from test.datalib import test_data_iter as test_data
+    from test.datalib.data import test_data_iter as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(
@@ -42,7 +42,7 @@ def test_iter():
     schema_translator.translate_schema(table_structure)
 
 def test_union():
-    from test.datalib import test_data_union as test_data
+    from test.datalib.data import test_data_union as test_data
     db = schema.ClassDependencyGraph((test_data,))
     table_structure = schema.TableStructure(db, StandardTableNamer())
     schema_translator = sqlite_schema_translator.SQLiteSchemaTranslator(

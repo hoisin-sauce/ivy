@@ -16,7 +16,7 @@ from lm_utils import remove_whitespace
 blank_database_interface = NoDatabaseManager()
 
 def test_basic_query():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
 
     q = Query(query_data.SampleChild, blank_database_interface.execute_query)
 
@@ -34,7 +34,7 @@ def test_basic_query():
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_from_interface():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
 
     q = blank_database_interface.select(query_data.SampleChild)
 
@@ -52,7 +52,7 @@ def test_query_from_interface():
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
 def test_query_basic_valid_condition():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
     make_module_subscriptable(query_data)
 
     q = blank_database_interface.select(query_data.SampleChild).where(
@@ -78,7 +78,7 @@ def test_query_basic_valid_condition():
     assert translated_q.query_to_database.inserted_values["param_1"] == 1
 
 def test_query_subscripting_field():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
     make_module_subscriptable(query_data)
 
     q = blank_database_interface.select(query_data.SampleGrandparent).where(
@@ -107,7 +107,7 @@ def test_query_subscripting_field():
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_q)
 
 def test_multiple_subscripting_fields():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
     make_module_subscriptable(query_data)
     q = blank_database_interface.select(query_data.SampleGreatGrandparent).where(
         query_data.SampleGreatGrandparent["grandparent"]["parent"]["child"] == query_data.SampleGreatGrandparent["grandparent"]["child"]
@@ -148,7 +148,7 @@ def test_query_combination():
     # TODO write assertion properties
 
 def test_field_with_multiple_types():
-    from test.datalib import test_data_query_tables as query_data
+    from test.datalib.data import test_data_query_tables as query_data
     make_module_subscriptable(query_data)
 
     # print_schema(query_data)
@@ -158,13 +158,13 @@ def test_field_with_multiple_types():
          .where(query_data.CouldHaveParentOrGrandparent["simpler_concept"][int] == 1))
 
 def test_union_simple():
-    from test.datalib import test_data_union as query_data
+    from test.datalib.data import test_data_union as query_data
     make_module_subscriptable(query_data)
     # print_schema(query_data)
     # TODO write tests
 
 def test_iter_from_md():
-    from test.datalib import test_iter_from_markdown as qd
+    from test.datalib.data import test_iter_from_markdown as qd
     make_module_subscriptable(qd)
     print_schema(qd)
 
