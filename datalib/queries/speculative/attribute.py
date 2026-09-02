@@ -26,7 +26,9 @@ class Attribute:
             # TODO how can we standardise this handling of isinstance chains
             # it is a repeated pattern that shows up everywhere
 
-            if isinstance((next_type := hints[attribute_name]), type):
+            next_type = hints[attribute_name]
+
+            if isinstance(next_type, type):
                 return [Attribute(name = attribute_name, attribute_type = next_type, parent = self)]
 
             if isinstance(next_type, types.UnionType):
