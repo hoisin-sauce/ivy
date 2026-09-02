@@ -4,17 +4,18 @@ from typing import Any, Optional, Generator
 
 import datalib.structure.schema
 import datalib.structure.naming.naming
-from datalib.queries.deterministic.queries import Query
+from datalib.queries.abstract_query import Query
 from datalib.database.abstract_database_components import QueryTranslator, \
     DatabaseRequestManger, \
     QueryToBeResolved, InsertionTranslator, SchemaTranslator, \
-    DatabaseOutputProcessor
+    DatabaseOutputProcessor, QueryGenerator
 
 
-class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABCMeta):
+class DatabaseManager[QueryType, DatabaseInteractionType, DataProcessingType](metaclass=ABCMeta):
     schema: datalib.structure.schema.TableStructure
     field_namer: datalib.structure.naming.naming.TableNamer
-    query_resolver: QueryTranslator[DatabaseInteractionType]
+    query_generator: QueryGenerator[QueryType]
+    query_resolver: QueryTranslator[QueryType, DatabaseInteractionType]
     insertion_translator: InsertionTranslator[DatabaseInteractionType]
     database_request_manager: DatabaseRequestManger[DatabaseInteractionType, DataProcessingType] # TODO Note allow for a memory option when implementing sqlite
     database_output_processor: DatabaseOutputProcessor[DataProcessingType]
@@ -28,8 +29,8 @@ class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABC
         # When clashes exist with an already existing database
         ...
 
-    def select[T](self, datatype: type[T]) -> Query[T]:
-        return Query(datatype, self.execute_query)
+    def select[T](self, datatype: type[T]) -> Query[QueryType, T]:
+        return self.query_generator.get_query(datatype, self.execute_query)
 
     # TODO implement better failure detection
     def insert(self, objects: Iterable[Any] | Any) -> Optional[bool]:
@@ -41,7 +42,7 @@ class DatabaseManager[DatabaseInteractionType, DataProcessingType](metaclass=ABC
         self.insert_single(objects)
         return True
 
-    def execute_query[T](self, query: Query[T]) -> Generator[T, None, None]:
+    def execute_query[T](self, query: Query[QueryType, T]) -> Generator[T, None, None]:
         query_representation: QueryToBeResolved[T, DatabaseInteractionType] = self.query_resolver.translate_query(query)
         database_output: DataProcessingType = self.database_request_manager.execute_query(query_representation)
         return self.database_output_processor.get_output(database_output)

@@ -6,6 +6,8 @@ from collections.abc import Generator
 from typing import Any, overload, Callable, TypeVar
 from types import GenericAlias, UnionType
 from datalib.utils import type_processing
+from datalib.queries import abstract_query
+from datalib.queries.deterministic import DeterministicQuery
 
 
 # TODO cleanup how imports are managed
@@ -26,7 +28,7 @@ class ConditionOperator(StrEnum):
     GREATER_THAN_OR_EQUALS = ">="
 
 
-class Query[T]:
+class Query[T](abstract_query.Query[DeterministicQuery, T]):
     """
     Abstract query class representing a query for data in a single class
     with any number of applied conditions

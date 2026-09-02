@@ -4,18 +4,20 @@ from datalib.utils.const import NONE_TYPE
 from datalib.database.database_types import NoData
 from datalib.structure.naming.naming import TableNamer, StandardTableNamer
 from datalib.queries.deterministic.queries import Query, QueryBundle
+from datalib.queries.deterministic.query_generator import DeterministicQueryGenerator
+from datalib.queries.deterministic import DeterministicQuery
 from datalib.database.abstract_database_components import (
     DatabaseRequestManger,
     QueryBundleTranslator,
     QueryTranslator,
     QueryToBeResolved,
-    InsertionTranslator, SchemaTranslator, DatabaseOutput,
+    InsertionTranslator, SchemaTranslator, DatabaseOutput, QueryGenerator,
 )
 from datalib.database.database_manager import DatabaseManager
 from datalib.structure.schema import TableStructure
 
 
-class NoQueryBundleTranslator(QueryBundleTranslator[NoData]):
+class NoQueryBundleTranslator(QueryBundleTranslator[DeterministicQuery, NoData]):
     """
     Dummy QueryTranslator class
     """
@@ -45,13 +47,14 @@ class NoSchema(TableStructure):
     def __init__(self):
         ...
 
-class NoDatabaseManager(DatabaseManager[NoData, NoData]):
+class NoDatabaseManager(DatabaseManager[DeterministicQuery, NoData, NoData]):
     """
     Dummy Database Manager class
     """
     schema: TableStructure = NoSchema()
     field_namer: TableNamer = StandardTableNamer()
-    query_resolver: QueryTranslator[NoData] = NoQueryBundleTranslator()
+    query_generator: QueryGenerator[DeterministicQuery] = DeterministicQueryGenerator()
+    query_resolver: QueryTranslator[DeterministicQuery, NoData] = NoQueryBundleTranslator()
     insertion_translator: InsertionTranslator[NoData] = NoInsertionTranslator()
     database_request_manager: DatabaseRequestManger[NoData, NoData] = NoDatabaseRequestManager()
     schema_translator: SchemaTranslator[NoData] = NoSchemaTranslator()

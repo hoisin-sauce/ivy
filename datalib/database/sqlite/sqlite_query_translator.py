@@ -4,6 +4,7 @@ from typing import Any, Iterable
 from datalib.database.abstract_database_components import QueryTranslator, \
     QueryToBeResolved
 from datalib.database.database_types import SQLiteString
+from datalib.queries.deterministic import DeterministicQuery
 from datalib.structure.datatypes import Table
 from datalib.queries.deterministic.queries import Query, Condition, ObjectAttribute, \
     ConditionCombination, ConditionOperator
@@ -47,7 +48,7 @@ class SQLiteConditionFragment:
         return self.where_string, self.join_strings, self.parameters
 
 
-class SQLiteQueryTranslator(QueryTranslator[SQLiteString]):
+class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
 
     schema: TableStructure
 

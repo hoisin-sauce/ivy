@@ -2,10 +2,11 @@
 """
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Generator, Any
+from typing import Generator, Any, Callable
 import typing
 
-from datalib.queries.deterministic.queries import Query, QueryBundle
+from datalib.queries.deterministic.queries import QueryBundle
+from datalib.queries.abstract_query import Query
 from datalib.structure.schema import TableStructure
 
 @dataclass
@@ -19,16 +20,23 @@ class QueryToBeResolved[ExpectedOutputObjectType, DatabaseExpectedDatatype]:
     expected_type: type[ExpectedOutputObjectType]
 
 OutputType = typing.TypeVar("OutputType")
-class QueryTranslator[OutputType](metaclass=ABCMeta):
+QueryType = typing.TypeVar("QueryType")
+
+class QueryGenerator[QueryType](metaclass=ABCMeta):
+    @abstractmethod
+    def get_query[T](self, datatype: type[T], executor: Callable[[Query[QueryType, T]], Generator[T, None, None]]) -> Query[QueryType, T]:
+        ...
+
+class QueryTranslator[QueryType, OutputType](metaclass=ABCMeta):
     """
     Abstract class promising that it can convert a query to the specified
     output format
     """
     @abstractmethod
-    def translate_query[T](self, query: Query[T]) -> QueryToBeResolved[T, OutputType]:
+    def translate_query[T](self, query: Query[QueryType, T]) -> QueryToBeResolved[T, OutputType]:
         ...
 
-class QueryBundleTranslator[OutputType](QueryTranslator[OutputType], metaclass=ABCMeta):
+class QueryBundleTranslator[QueryType, OutputType](QueryTranslator[QueryType, OutputType], metaclass=ABCMeta):
     """
     Abstract class to handle the translation of bundled queries to the
     specified output format
