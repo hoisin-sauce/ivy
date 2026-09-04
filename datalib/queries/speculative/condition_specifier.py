@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any
+from types import ModuleType
+
+from datalib.utils.type_processing import get_types_in_module
 
 class AccessMethod(Enum):
     GETATTR = auto()
@@ -115,3 +118,26 @@ class Attribute:
     def __contains__(self, item: Any) -> Condition:
         return Condition(left=self, right=item,
                          operator=AttributeComparison.CONTAINS)
+
+
+class QueryableTable:
+    """
+    Parent class for queryable classes, if that is the preferred method of implementation
+    """
+    def __class_getitem__(cls, item: str) -> Attribute:
+        return Attribute(accessed_by=AccessMethod.GETITEM,
+                         accessed_with=item,
+                         parent=cls)
+
+def make_class_queryable(cls: type) -> None:
+    """
+    Makes the provided class subscriptable to produce queries
+    Args:
+        cls:
+            The class to be changed
+    """
+    setattr(cls, '__class_getitem__', QueryableTable.__class_getitem__)
+
+def make_module_queryable(module: ModuleType) -> None:
+    for cls in get_types_in_module(module):
+        make_class_queryable(cls)
