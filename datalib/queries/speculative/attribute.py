@@ -5,6 +5,9 @@ from dataclasses import dataclass
 import typing
 import types
 
+import warnings
+warnings.warn("This is a test module and should not be used, will be removed in later versions", DeprecationWarning, stacklevel=2)
+
 @dataclass
 class Attribute:
     name: str

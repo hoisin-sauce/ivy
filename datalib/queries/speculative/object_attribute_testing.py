@@ -9,6 +9,10 @@ import types
 from datalib.utils.db_utils import flatten_to_list
 from datalib.queries.speculative.attribute import Attribute
 
+import warnings
+
+warnings.warn("This is a test module and should not be used, will be removed in later versions", DeprecationWarning, stacklevel=2)
+
 @dataclass
 class ObjectAttribute:
     possible_attributes: list[Attribute]
