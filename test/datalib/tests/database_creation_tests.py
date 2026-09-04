@@ -2,7 +2,7 @@ from datalib.database.sqlite import sqlite_schema_translator
 from datalib.structure import schema
 from datalib.structure.database_constraint import StandardPrimaryKeyResolver
 from datalib.structure.naming.naming import StandardTableNamer
-import modeldata
+from lm_example_project import modeldata
 
 
 def test_modeldata_graph_initialisation():

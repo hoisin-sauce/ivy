@@ -3,7 +3,7 @@ from types import ModuleType
 from datalib.structure.naming.naming import StandardTableNamer
 from datalib.structure.schema import TableStructure
 from datalib.structure.graph import ClassDependencyGraph
-from lm_utils import object_to_dict
+from lm_example_project.lm_utils import object_to_dict
 
 
 def create_schema(module_target: ModuleType) -> TableStructure:

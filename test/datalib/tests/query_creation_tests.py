@@ -11,7 +11,7 @@ from datalib.structure.graph import ClassDependencyGraph
 from datalib.structure.schema import TableStructure
 from datalib.database.sqlite.sqlite_schema_translator import SQLiteSchemaTranslator
 
-from lm_utils import remove_whitespace
+from lm_example_project.lm_utils import remove_whitespace
 
 blank_database_interface = NoDatabaseManager()
 

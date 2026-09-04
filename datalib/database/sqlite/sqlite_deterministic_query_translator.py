@@ -13,7 +13,7 @@ from datalib.queries.deterministic.queries import Query, Condition, ObjectAttrib
     ConditionCombination, ConditionOperator
 from datalib.structure.schema import TableStructure
 from datalib.utils import const
-from lm_utils import remove_duplicates_preserving_order
+from lm_example_project.lm_utils import remove_duplicates_preserving_order
 
 
 # text conversions

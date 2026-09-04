@@ -6,8 +6,7 @@ from typing import Optional
 import requests
 import json
 import os
-from modeldata import ModelChatRequest, ModelResponse, Plugin, ToolCall, \
-    Message
+from modeldata import ModelChatRequest, ModelResponse, Plugin
 import lm_utils
 
 @dataclass
