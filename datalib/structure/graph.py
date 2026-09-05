@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Type
 from types import ModuleType
 from collections.abc import Iterable
 import datalib.utils.db_utils as db_utils
@@ -41,7 +40,7 @@ class ClassDependencyGraph:
         to type encapsulating their dependencies and what depends on them,
         forming a node in a graph with arrows pointing to and away from it
         """
-        unresolved_types: list[Type] = list(self.types)
+        unresolved_types: list[type] = list(self.types)
 
         while unresolved_types:
             class_type = unresolved_types.pop(0)
@@ -63,7 +62,7 @@ class ClassDependencyGraph:
             for dependency in datatype_information.dependencies:
                 self.datatype_map[dependency].depended_by.add(datatype)
 
-    def _get_build_order(self) -> list[Type]:
+    def _get_build_order(self) -> list[type]:
         """
         Calculates the required build order from a state where the dependencies
         and depended on values are set within the object
@@ -75,10 +74,10 @@ class ClassDependencyGraph:
             FailedDatabaseInitialisationError
                 If the graph is circular
         """
-        completable: list[Type] = [i for i in self.types if not self.datatype_map[i].remaining_dependencies]
-        build_order: list[Type] = list()
+        completable: list[type] = [i for i in self.types if not self.datatype_map[i].remaining_dependencies]
+        build_order: list[type] = list()
         while completable:
-            processing: Type = completable.pop(0)
+            processing: type = completable.pop(0)
 
             # TODO process enums table in graph should exist
             if not db_utils.safe_is_subclass(processing, Enum):

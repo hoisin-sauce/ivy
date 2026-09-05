@@ -1,6 +1,6 @@
 from abc import ABCMeta
-from collections.abc import Iterable
-from typing import Any, Optional, Generator
+from collections.abc import Iterable, Generator
+from typing import Optional
 
 import datalib.structure.schema
 import datalib.structure.naming.naming
@@ -33,7 +33,7 @@ class DatabaseManager[QueryType, DatabaseInteractionType, DataProcessingType](me
         return self.query_generator.get_query(datatype, self.execute_query)
 
     # TODO implement better failure detection
-    def insert(self, objects: Iterable[Any] | Any) -> Optional[bool]:
+    def insert(self, objects: Iterable[object] | object) -> Optional[bool]:
         if isinstance(objects, Iterable):
             for obj in objects:
                 self.insert_single(obj)
@@ -47,6 +47,6 @@ class DatabaseManager[QueryType, DatabaseInteractionType, DataProcessingType](me
         database_output: DataProcessingType = self.database_request_manager.execute_query(query_representation)
         return self.database_output_processor.get_output(database_output)
 
-    def insert_single(self, obj: Any) -> None:
+    def insert_single(self, obj: object) -> None:
         insertion_representation: DatabaseInteractionType = self.insertion_translator.translate_insertion(obj)
         self.database_request_manager.execute_query(insertion_representation)

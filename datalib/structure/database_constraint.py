@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def filter_table_field_constraints(constraints: Iterable["DatabaseConstraint"]

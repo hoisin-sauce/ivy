@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any
 from types import ModuleType
 
 from datalib.utils.type_processing import get_types_in_module
@@ -48,8 +47,8 @@ class Condition:
         right: The right side of the condition
         operator: The comparison being made between the two sides of the condition
     """
-    left: Any
-    right: Any
+    left: object
+    right: object
     operator: Comparison
 
     def __and__(self, other: "Condition") -> "Condition":
@@ -79,7 +78,7 @@ class Attribute:
         parent: The parent object that this attribute belongs to
     """
     accessed_by: AccessMethod
-    accessed_with: Any
+    accessed_with: object
     parent: "type | Attribute"
 
 
@@ -88,38 +87,38 @@ class Attribute:
                          accessed_with=item,
                          parent=self)
 
-    def __getitem__(self, item: Any) -> "Attribute":
+    def __getitem__(self, item: object) -> "Attribute":
             return Attribute(accessed_by=AccessMethod.GETITEM,
                              accessed_with=item,
                              parent=self)
 
-    def __le__(self, other: Any) -> Condition:
+    def __le__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.LE)
 
-    def __ge__(self, other: Any) -> Condition:
+    def __ge__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.GE)
 
-    def __lt__(self, other: Any) -> Condition:
+    def __lt__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.LT)
 
-    def __gt__(self, other: Any) -> Condition:
+    def __gt__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.GT)
 
     # We want to store the calls here so its alright if eq isn't actually a bool for simplifying syntax
     # noinspection method-overriding
-    def __eq__(self, other: Any) -> Condition:
+    def __eq__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.EQ)
 
-    def __neq__(self, other: Any) -> Condition:
+    def __neq__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
                          operator=AttributeComparison.NEQ)
 
-    def __contains__(self, item: Any) -> Condition:
+    def __contains__(self, item: object) -> Condition:
         return Condition(left=self, right=item,
                          operator=AttributeComparison.CONTAINS)
 

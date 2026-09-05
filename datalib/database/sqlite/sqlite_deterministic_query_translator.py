@@ -2,7 +2,7 @@
 """
 import warnings
 from dataclasses import dataclass
-from typing import Any, Iterable
+from collections.abc import Iterable
 
 from datalib.database.abstract_database_components import QueryTranslator, \
     QueryToBeResolved
@@ -100,9 +100,9 @@ class SQLiteConditionFragment:
     """
     where_string: str
     join_strings: list[str] # order is necessary
-    parameters: dict[str, Any]
+    parameters: dict[str, object]
 
-    def get_tuple(self) -> tuple[str, list[str], dict[str, Any]]:
+    def get_tuple(self) -> tuple[str, list[str], dict[str, object]]:
         """
         Returns a tuple representation of the object
         Returns:
@@ -169,7 +169,7 @@ class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
         sqlite_query_string = SQLiteString(query_string, query_parameters)
         return QueryToBeResolved[T, SQLiteString](sqlite_query_string, query.expected_type)
 
-    def resolve_conditions(self, conditions: Iterable[Condition]) -> tuple[str, str, dict[str, Any]]:
+    def resolve_conditions(self, conditions: Iterable[Condition]) -> tuple[str, str, dict[str, object]]:
         """
         Resolves a container of conditions and returns the full join and where clauses
         Args:
@@ -208,7 +208,7 @@ class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
         """
         return self.resolve_condition_fragment(condition)
 
-    def resolve_condition_fragment(self, fragment: Any) -> SQLiteConditionFragment:
+    def resolve_condition_fragment(self, fragment: object) -> SQLiteConditionFragment:
         if isinstance(fragment, Condition):
             if isinstance(fragment.operator, ConditionCombination):
                 return self.translate_condition_combination_fragment(fragment)

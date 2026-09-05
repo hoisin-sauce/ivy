@@ -3,7 +3,8 @@ import typing
 from dataclasses import dataclass
 from enum import StrEnum
 from collections.abc import Generator
-from typing import Any, overload, Callable, TypeVar
+from typing import Any, overload, TypeVar
+from collections.abc import Callable
 from types import GenericAlias, UnionType
 from datalib.utils import type_processing
 from datalib.queries import abstract_query

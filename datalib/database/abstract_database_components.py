@@ -2,7 +2,7 @@
 """
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Generator, Any, Callable
+from collections.abc import Generator, Callable
 import typing
 
 from datalib.queries.deterministic.queries import QueryBundle
@@ -76,7 +76,7 @@ class InsertionTranslator[OutputType](metaclass=ABCMeta):
     output format
     """
     @abstractmethod
-    def translate_insertion(self, obj: Any) -> QueryToBeResolved[None, OutputType]:
+    def translate_insertion(self, obj: object) -> QueryToBeResolved[None, OutputType]:
         ...
 
 class SchemaTranslator[OutputType](metaclass=ABCMeta):

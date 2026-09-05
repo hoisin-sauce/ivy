@@ -1,6 +1,6 @@
 """Implementation of the QueryGenerator instance for a DeterministicQuery
 """
-from typing import Callable, Generator
+from collections.abc import Callable, Generator
 
 from datalib.database.abstract_database_components import QueryGenerator
 from datalib.queries.deterministic import DeterministicQuery, queries

@@ -1,5 +1,3 @@
-from typing import Any
-
 from datalib.utils.const import NONE_TYPE
 from datalib.database.database_types import NoData
 from datalib.structure.naming.naming import TableNamer, StandardTableNamer
@@ -35,7 +33,7 @@ class NoDatabaseRequestManager(DatabaseRequestManger[NoData, NoData]):
         return DatabaseOutput[NoData, T](NoData(), query.expected_type)
 
 class NoInsertionTranslator(InsertionTranslator[NoData]):
-    def translate_insertion(self, obj: Any) -> QueryToBeResolved[None, NoData]:
+    def translate_insertion(self, obj: object) -> QueryToBeResolved[None, NoData]:
         return QueryToBeResolved[None, NoData](NoData(), NONE_TYPE)
 
 class NoSchemaTranslator(SchemaTranslator[NoData]):
