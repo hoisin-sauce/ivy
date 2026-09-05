@@ -191,3 +191,25 @@ def get_union_type(datatypes: list[type]):
         base_type = typing.Union[base_type, datatype]
 
     return base_type
+
+def resolve_to_possible_types(type_: type | GenericAlias | UnionType) -> tuple[type]:
+    """
+    Resolve a given type or composition of types to its component types.
+    GenericAlias types have their specialisation removed.
+    Args:
+        type_:
+            The type to be decomposed
+    Returns:
+        A tuple containing the types that could satisfy it.
+    """
+
+    if isinstance(type_, type):
+        return (type_,)
+
+    if isinstance(type_, GenericAlias):
+        return (typing.get_origin(type_),)
+
+    if isinstance(type_, UnionType):
+        return typing.get_args(type_)
+
+    raise NotImplementedError(f"The type format provided {type(type_).__name__} is currently not supported")
