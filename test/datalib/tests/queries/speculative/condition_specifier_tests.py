@@ -37,3 +37,6 @@ def test_condition_creation_eq():
     assert example_condition.left == example_attribute
     assert example_condition.right == 1
     assert example_condition.operator == condition_specifier.AttributeComparison.EQ
+
+def test_example_callable_attribute():
+    example_callable = TestEntryPoint["field"].option(0)

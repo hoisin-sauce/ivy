@@ -6,8 +6,12 @@ from types import ModuleType
 from datalib.utils.type_processing import get_types_in_module
 
 class AccessMethod(Enum):
+    """
+    Represents the method used to create an attribute object
+    """
     GETATTR = auto()
     GETITEM = auto()
+    CALL = auto()
 
 class Comparison(Enum):
     """
@@ -118,6 +122,11 @@ class Attribute:
     def __contains__(self, item: Any) -> Condition:
         return Condition(left=self, right=item,
                          operator=AttributeComparison.CONTAINS)
+
+    def __call__(self, *args, **kwargs):
+        return Attribute(accessed_by=AccessMethod.CALL,
+                         accessed_with={"args": args, "kwargs": kwargs},
+                         parent=self)
 
 
 class QueryableTable:
