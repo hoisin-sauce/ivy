@@ -16,7 +16,7 @@ def test_basic_creation():
 
     other_specialised_o = qt.CouldHaveParentOrGrandparent["parent_or_grandparent", qt.SampleParent]
 
-    assert len(other_specialised_o.possible_attributes) == 1
+    assert len(other_specialised_o.possible_attribute_options) == 1
     assert format_with_tabs(object_to_dict(specialised_o)) == format_with_tabs(object_to_dict(other_specialised_o))
 
 def test_iterable_creation():

@@ -65,6 +65,21 @@ class Condition:
 
         raise TypeError("Conditions can only be compared with other conditions")
 
+@dataclass
+class AttributeAccess:
+    """
+    Class describing how an attribute was access in a hashable format
+    Attributes:
+        method:
+            AccessMethod enum indicating how the attribute was accessed
+        ordered_params:
+            Tuple containing the ordered arguments passed to the function
+        kw_params:
+            Tuple containing key-value pairs of the kwargs passed to the function
+    """
+    method: AccessMethod
+    ordered_params: tuple[object, ...]
+    kw_params: tuple[tuple[str, object]]
 
 @dataclass
 class Attribute:
@@ -73,24 +88,28 @@ class Attribute:
     Comparisons with an object of this type will return a condition rather than a boolean
 
     Attributes:
-        accessed_by: The type of access that was used to create this attribute, e.g. a[thing] or a.thing
-        accessed_with: The parameter passed to the access type, so "thing" in the above example
+        access: The method used to access the attribute
         parent: The parent object that this attribute belongs to
     """
-    accessed_by: AccessMethod
-    accessed_with: object
+    access: AttributeAccess
     parent: "type | Attribute"
 
 
     def __getattr__(self, item: str) -> "Attribute":
-        return Attribute(accessed_by=AccessMethod.GETATTR,
-                         accessed_with=item,
-                         parent=self)
+        return Attribute(
+            access=AttributeAccess(
+                method=AccessMethod.GETATTR,
+                ordered_params=(item,),
+                kw_params=tuple()),
+            parent=self)
 
     def __getitem__(self, item: object) -> "Attribute":
-            return Attribute(accessed_by=AccessMethod.GETITEM,
-                             accessed_with=item,
-                             parent=self)
+            return Attribute(
+                access=AttributeAccess(
+                    method=AccessMethod.GETITEM,
+                    ordered_params=(item,),
+                    kw_params=tuple()),
+                parent=self)
 
     def __le__(self, other: object) -> Condition:
         return Condition(left=self, right=other,
@@ -123,9 +142,12 @@ class Attribute:
                          operator=AttributeComparison.CONTAINS)
 
     def __call__(self, *args, **kwargs):
-        return Attribute(accessed_by=AccessMethod.CALL,
-                         accessed_with={"args": args, "kwargs": kwargs},
-                         parent=self)
+        return Attribute(
+            access=AttributeAccess(
+                method=AccessMethod.CALL,
+                ordered_params=args,
+                kw_params=tuple(kwargs.items())),
+            parent=self)
 
 
 class QueryableTable:
@@ -133,9 +155,13 @@ class QueryableTable:
     Parent class for queryable classes, if that is the preferred method of implementation
     """
     def __class_getitem__(cls, item: str) -> Attribute:
-        return Attribute(accessed_by=AccessMethod.GETITEM,
-                         accessed_with=item,
-                         parent=cls)
+        return Attribute(
+            access=AttributeAccess(
+                method=AccessMethod.GETITEM,
+                ordered_params=(item,),
+                kw_params=tuple()
+            ),
+            parent=cls)
 
 def make_class_queryable(cls: type) -> None:
     """

@@ -2,11 +2,16 @@
 """
 import types
 import typing
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 from types import ModuleType, UnionType, GenericAlias
-from collections.abc import Iterable
-import datalib.utils.db_utils as db_utils
+from collections.abc import Iterable, Mapping, Callable
 import enum
+import inspect
+import itertools
+
+import datalib.utils.db_utils as db_utils
+
+FunctionParameterSignature = tuple[tuple[object, ...], tuple[tuple[str, object]]]
 
 def is_type(obj: Any) -> bool:
     """
@@ -192,7 +197,7 @@ def get_union_type(datatypes: list[type]):
 
     return base_type
 
-def resolve_to_possible_types(type_: type | GenericAlias | UnionType) -> tuple[type]:
+def resolve_to_possible_types(type_: type | GenericAlias | UnionType) -> tuple[type, ...]:
     """
     Resolve a given type or composition of types to its component types.
     GenericAlias types have their specialisation removed.
@@ -213,3 +218,81 @@ def resolve_to_possible_types(type_: type | GenericAlias | UnionType) -> tuple[t
         return typing.get_args(type_)
 
     raise NotImplementedError(f"The type format provided {type(type_).__name__} is currently not supported")
+
+def type_map(container: Iterable) -> tuple[type, ...]:
+    """Maps the provided container to a tuple of the types of its items"""
+    return tuple(map(type, container))
+
+def get_function_argument_shapes[**P](f: Callable[P, ...]) \
+        -> list[FunctionParameterSignature]:
+    """
+    Get all possible shapes that a function could be, including permutations of
+    positional and keyword arguments
+
+    Note: does not support *args and **kwargs as they are difficult to describe
+    in a hashable manner and can be described as a tuple or dict accordingly
+    Args:
+        f:
+            Function to be inspected
+    Returns:
+        List of tuples representing the possible argument structures.
+        Tuples match the following form
+
+        (
+            (positional_type_1, positional_type_2, ...),
+            ((keyword_1, keyword_type_1), (keyword_2, keyword_type_2), ...)
+        )
+    Raises:
+        TypeError:
+            If the function has unbound parameters, e.g. *args or **kwargs
+    """
+    function_signature = inspect.signature(f)
+
+    parameters = function_signature.parameters
+
+    if any(parameters[par].kind in (
+                    inspect.Parameter.VAR_KEYWORD,
+                    inspect.Parameter.VAR_POSITIONAL
+            )
+            for par in parameters):
+
+        raise TypeError(
+            "All parameters in provided functions must be bound"
+            "consider using a tuple or dictionary parameter instead"
+        )
+
+    named_argument_cutoff = next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
+
+    positional_parameter_names = list(parameters)[:named_argument_cutoff]
+    named_parameter_names = list(parameters)[named_argument_cutoff:]
+
+
+    # Map parameters to the tuple of types that could represent them
+    positional_parameter_types: list[tuple[type, ...]] = list(
+        map(
+            lambda par: resolve_to_possible_types(parameters[par].annotation),
+            positional_parameter_names
+        )
+    )
+
+    # Here the tuple needs to also store the combinations
+    named_parameter_name_type_pairs: list[tuple[tuple[str, type]]] = list(
+        map(
+            lambda par: tuple((par, t) for t in resolve_to_possible_types(parameters[par].annotation)),
+            named_parameter_names
+        )
+    )
+
+    # Find all permutations of positional and named parameters
+    possible_positional_parameter_shapes: Iterable[tuple[type, ...]] = \
+        itertools.product(*positional_parameter_types)
+
+    possible_named_parameter_shapes: Iterable[tuple[tuple[str, object]]] = \
+        itertools.product(*named_parameter_name_type_pairs)
+
+    # Find all permutations of those
+    possible_signatures: Iterable[FunctionParameterSignature] = \
+        itertools.product(possible_positional_parameter_shapes,
+                          possible_named_parameter_shapes)
+
+    return list(possible_signatures)
