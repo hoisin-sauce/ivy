@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from collections.abc import Callable
 from types import UnionType, GenericAlias
-from typing import ClassVar, Optional
+from typing import ClassVar, Optional, override, Self
 
 from datalib.queries.speculative.condition_specifier import AccessMethod, Attribute, AttributeComparison, Comparison, AttributeAccess
 from datalib.utils.type_processing import get_function_argument_shapes, type_map, FunctionParameterSignature
@@ -23,7 +23,7 @@ class AttributeDetails:
     attribute_name: Optional[str]
     possible_attribute_options: list
 
-class AbstractAttribute[T](metaclass=ABCMeta):
+class AbstractAttribute(metaclass=ABCMeta):
     """
     Base class for abstract attributes showing the structure required to
     be implemented to allow for an attribute to work with the surrounding
@@ -32,7 +32,7 @@ class AbstractAttribute[T](metaclass=ABCMeta):
         name: the name of the attribute
         attribute_type: the type of the attribute
         parent: the parent of the attribute, unless it is the top level class itself
-        datatype_converter: the datatype converter responsible for resolving children to attributes
+        datatype_converter: the datatype datatype_converter responsible for resolving children to attributes
 
         supported_specialisations:
             (class attribute) a dictionary mapping each different supported
@@ -43,7 +43,7 @@ class AbstractAttribute[T](metaclass=ABCMeta):
             shape of access method to the function describing that specialisation
         supported_comparisons:
             (class attribute) a list containing all possible comparisons that this
-            attribute supports#
+            attribute supports
     """
     name: str
     attribute_type: type | UnionType | GenericAlias
@@ -68,7 +68,7 @@ class AbstractAttribute[T](metaclass=ABCMeta):
     supported_comparisons: ClassVar[list[AttributeComparison]]
 
     @classmethod
-    def register_specialisation(cls: "AbstractAttribute[T]",
+    def register_specialisation(cls: "type[AbstractAttribute]",
                                 access_method: AccessMethod,
                                 specialisation_function: Callable[..., AttributeDetails]):
         """
@@ -165,11 +165,54 @@ class AbstractAttribute[T](metaclass=ABCMeta):
         """
         return comparison in cls.supported_comparisons
 
+class RootTable(AbstractAttribute, metaclass=ABCMeta):
+    """
+    Represents the base table in a chain of attribute accesses.
+
+    A more limited version of the AbstractAttribute class. Specialisations are
+    limited to an AccessMethod of GETITEM and parents are fixed as none.
+
+    Attributes:
+        name: the name of the table
+        attribute_type: the type that the table represents
+        parent: NoneType indicating no parent is available
+        datatype_converter: the datatype converter responsible for resolving children to attributes
+
+        supported_specialisations:
+            (class attribute) a dictionary mapping each different supported
+            specialisation's access method to the allowed parameter shapes
+            of that method
+        specialisation_functions:
+            (class attribute) a dictionary mapping each specialisation and
+            shape of access method to the function describing that specialisation
+        supported_comparisons:
+            (class attribute) a list containing all possible comparisons that this
+            attribute supports
+
+    """
+    attribute_type: type
+    parent: None = None
+
+    @classmethod
+    def make_new(cls, table_type: type, datatype_converter: "DatatypeConverter") -> Self:
+        """Returns a new RootTable object"""
+
+
+    @override
+    @classmethod
+    def register_specialisation(cls: "type[RootTable]",
+                                access_method: AccessMethod,
+                                specialisation_function: Callable[..., AttributeDetails]):
+        if access_method != AccessMethod.GETITEM:
+            raise ValueError("Root attributes can only be accessed via a getitem call")
+
+        super().register_specialisation(access_method, specialisation_function)
+
 @dataclass
 class AttributeCollection:
     attributes: list[AbstractAttribute]
 
-    def get_next(self, access_method: AttributeAccess) -> "AttributeCollection":
+    def apply_specialisation(self, access_method: AttributeAccess) -> "AttributeCollection":
         """
         Get the next attribute collection returned from applying the provided
         access method and parameters
@@ -188,6 +231,10 @@ class AttributeCollection:
                 next_attributes.extend(corresponding_next_attribute_collection.attributes)
 
         return AttributeCollection(next_attributes)
+
+    @property
+    def still_accessible(self) -> bool:
+        return len(self.attributes) != 0
 
 
 class AbstractAttributeTypeManager[T](metaclass=ABCMeta):
@@ -234,10 +281,11 @@ class DatatypeConverter:
             order of this list
     """
     type_managers: list[AbstractAttributeTypeManager]
+    root_attribute_type: type[RootTable]
 
 
     def register_type_manager(self, type_manager: AbstractAttributeTypeManager):
-        """Allows the datatype converter to use the provided type manager"""
+        """Allows the datatype datatype_converter to use the provided type manager"""
         self.type_managers.append(type_manager)
 
     def convert_to_attributes(self, attribute_name: str, attribute_obj: object, attribute_parent: AbstractAttribute) -> AttributeCollection:
@@ -270,7 +318,6 @@ class DatatypeConverter:
             be reached by applying the operations applied to the provided attribute
         """
 
-        # Find parent and order of operations
 
         reverse_access_order: list[AttributeAccess] = list()
         while isinstance(attr, Attribute):
@@ -280,9 +327,20 @@ class DatatypeConverter:
         access_order: list[AttributeAccess] = list(reversed(reverse_access_order))
         root_type: type = attr
 
-        # how do we assign the parent???
-        # Step through operations applied, validating at each stage
-        # Terminating early if the attribute collection is ever empty
+        root_attribute = self.root_attribute_type.make_new(root_type, self)
+        current_attribute = root_attribute
+
+        assert len(access_order) != 0
+
+        for access_instance in access_order:
+            current_attribute: AttributeCollection = current_attribute.apply_specialisation(access_instance)
+
+            if not current_attribute.still_accessible:
+                return current_attribute
+
+        current_attribute: AttributeCollection
+
+        return current_attribute
 
 
 class SchemaCondition:
