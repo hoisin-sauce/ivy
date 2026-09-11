@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from types import UnionType, GenericAlias
 from typing import ClassVar, Optional, override, Self
 
@@ -65,7 +65,36 @@ class AbstractAttribute(metaclass=ABCMeta):
             ]
         ]
 
-    supported_comparisons: ClassVar[list[AttributeComparison]]
+    supported_comparisons: ClassVar[list[AttributeComparison]] = list()
+
+    def __init__(self,
+                 name: str,
+                 attribute_type: type | UnionType | GenericAlias,
+                 parent: "Optional[AbstractAttribute]",
+                 datatype_converter: "DatatypeConverter"):
+        self.name = name
+        self.attribute_type = attribute_type
+        self.parent = parent
+        self.datatype_converter = datatype_converter
+
+    def __init_subclass__(cls,
+                          specialisations: \
+                                  Optional[Iterable[
+                                      tuple[
+                                          AccessMethod,
+                                          Callable[..., AttributeDetails]
+                                      ]
+                                  ]
+                                  ] = None) -> None:
+        cls.specialisation_functions = dict()
+        cls.supported_specialisations = dict()
+        cls.supported_comparisons = list()
+
+        if specialisations:
+            map(
+                lambda specialisation: cls.register_specialisation(*specialisation),
+                specialisations
+            )
 
     @classmethod
     def register_specialisation(cls: "type[AbstractAttribute]",
@@ -191,11 +220,17 @@ class RootTable(AbstractAttribute, metaclass=ABCMeta):
 
     """
     attribute_type: type
-    parent: None = None
+    parent: None
+
+    def __init__(self,
+                 attribute_type: type,
+                 datatype_converter: "DatatypeConverter"):
+        super().__init__(attribute_type.__name__, attribute_type, None, datatype_converter)
 
     @classmethod
     def make_new(cls, table_type: type, datatype_converter: "DatatypeConverter") -> Self:
         """Returns a new RootTable object"""
+        return cls(table_type, datatype_converter)
 
 
     @override
