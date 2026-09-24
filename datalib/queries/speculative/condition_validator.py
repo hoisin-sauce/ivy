@@ -5,6 +5,7 @@ from types import UnionType, GenericAlias
 from typing import ClassVar, Optional, override, Self
 
 from datalib.queries.speculative.condition_specifier import AccessMethod, Attribute, AttributeComparison, Comparison, AttributeAccess
+from datalib.utils.db_utils import flatten_to_list
 from datalib.utils.type_processing import get_function_argument_shapes, type_map, FunctionParameterSignature
 
 
@@ -156,7 +157,7 @@ class AbstractAttribute(metaclass=ABCMeta):
             A collection of next possible attributes
         """
         # Use assert so it will be skipped when optimised
-        assert self.supports_specialisation(access_method, access_method.ordered_params)
+        assert self.supports_specialisation(access_method)
 
         function_access_signature: tuple[AccessMethod, FunctionParameterSignature] = \
             (
@@ -171,13 +172,14 @@ class AbstractAttribute(metaclass=ABCMeta):
 
         name = next_types.attribute_name if next_types.attribute_name else self.name
 
-        next_attributes = list(map(
+        next_attributes: list[AbstractAttribute] = flatten_to_list(map(
             lambda attr_classification:
                 self.datatype_converter.convert_to_attributes(
                     attribute_name=name,
                     attribute_obj=attr_classification,
                     attribute_parent=self
-            ), next_types.possible_attribute_options
+            ).attributes,
+            next_types.possible_attribute_options
         ))
 
         return AttributeCollection(next_attributes)
@@ -318,6 +320,16 @@ class DatatypeConverter:
     type_managers: list[AbstractAttributeTypeManager]
     root_attribute_type: type[RootTable]
 
+    def __init__(self, type_managers: list[AbstractAttributeTypeManager], root_attribute_type: type[RootTable]):
+        self.set_root_attribute_type(root_attribute_type)
+
+        self.type_managers = list()
+        for type_manager in type_managers:
+            self.register_type_manager(type_manager)
+
+    def set_root_attribute_type(self, root_attribute_type: type[RootTable]):
+        """Sets the base attribute type that classes are validated as"""
+        self.root_attribute_type = root_attribute_type
 
     def register_type_manager(self, type_manager: AbstractAttributeTypeManager):
         """Allows the datatype datatype_converter to use the provided type manager"""

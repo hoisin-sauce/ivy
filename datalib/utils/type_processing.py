@@ -261,7 +261,10 @@ def get_function_argument_shapes[**P](f: Callable[P, ...]) \
             "consider using a tuple or dictionary parameter instead"
         )
 
-    named_argument_cutoff = next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
+    try:
+        named_argument_cutoff = next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
+    except StopIteration:
+        named_argument_cutoff = len(parameters)
 
     positional_parameter_names = list(parameters)[:named_argument_cutoff]
     named_parameter_names = list(parameters)[named_argument_cutoff:]
@@ -296,3 +299,7 @@ def get_function_argument_shapes[**P](f: Callable[P, ...]) \
                           possible_named_parameter_shapes)
 
     return list(possible_signatures)
+
+def function_belongs_to_class(function: Callable, class_: type) -> bool:
+    """Returns whether the function belongs to the class"""
+    return getattr(class_, function.__name__, None) == function
