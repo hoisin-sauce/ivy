@@ -2,8 +2,8 @@
 """
 import types
 import typing
-from typing import Any, Optional
-from types import ModuleType, UnionType, GenericAlias
+from typing import Any, Optional, Literal
+from types import ModuleType, UnionType, GenericAlias, MappingProxyType
 from collections.abc import Iterable, Mapping, Callable
 import enum
 import inspect
@@ -223,7 +223,48 @@ def type_map(container: Iterable) -> tuple[type, ...]:
     """Maps the provided container to a tuple of the types of its items"""
     return tuple(map(type, container))
 
-def get_function_argument_shapes[**P](f: Callable[P, ...]) \
+type ParamKind = inspect._ParameterKind
+
+def get_function_argument_shape[**P](f: Callable[P, ...],
+                                      blocked_parameter_types: Optional[tuple[ParamKind, ...]] = None) \
+        -> MappingProxyType[str, inspect.Parameter]:
+    """
+    Get the function argument shape without any simplification of types. Raises an error if any parameters are
+    of the blocked parameter types specified.
+
+    Blocked parameter types can be provided as class vars of inspect.Parameter
+    Args:
+        f:
+            function to be inspected
+        blocked_parameter_types:
+            parameter types that an error will be raised upon. Elements of inspect.Parameter or inspect._ParameterKind
+
+    Returns:
+        Ordered mapping of function parameter names to inspect.Parameter objects representing the parameter's metadata
+
+    Raises:
+        TypeError:
+            If the function has parameters that are of the given blocked types
+    """
+
+    if blocked_parameter_types is None:
+        blocked_parameter_types = tuple()
+
+    function_signature = inspect.signature(f)
+
+    parameters = function_signature.parameters
+
+
+    # Verify function type argument matches
+    if any(parameters[par].kind in blocked_parameter_types
+           for par in parameters):
+        raise TypeError(
+            f"All parameters in provided functions must be of type"
+        )
+
+    return parameters
+
+def get_simple_function_argument_shapes[**P](f: Callable[P, ...]) \
         -> list[FunctionParameterSignature]:
     """
     Get all possible shapes that a function could be, including permutations of
@@ -246,23 +287,18 @@ def get_function_argument_shapes[**P](f: Callable[P, ...]) \
         TypeError:
             If the function has unbound parameters, e.g. *args or **kwargs
     """
-    function_signature = inspect.signature(f)
 
-    parameters = function_signature.parameters
+    # TODO make so that blocking parameters is not necessary
 
-    if any(parameters[par].kind in (
-                    inspect.Parameter.VAR_KEYWORD,
-                    inspect.Parameter.VAR_POSITIONAL
-            )
-            for par in parameters):
+    parameters = get_function_argument_shape(
+        f,
+        blocked_parameter_types=(inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
+    )
 
-        raise TypeError(
-            "All parameters in provided functions must be bound"
-            "consider using a tuple or dictionary parameter instead"
-        )
-
+    # Get end of named arguments
     try:
-        named_argument_cutoff = next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
+        named_argument_cutoff = \
+            next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
     except StopIteration:
         named_argument_cutoff = len(parameters)
 

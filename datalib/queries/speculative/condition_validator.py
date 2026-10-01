@@ -6,7 +6,7 @@ from typing import ClassVar, Optional, override, Self
 
 from datalib.queries.speculative.condition_specifier import AccessMethod, Attribute, AttributeComparison, Comparison, AttributeAccess
 from datalib.utils.db_utils import flatten_to_list
-from datalib.utils.type_processing import get_function_argument_shapes, type_map, FunctionParameterSignature
+from datalib.utils.type_processing import get_simple_function_argument_shapes, type_map, FunctionParameterSignature
 
 
 @dataclass
@@ -114,7 +114,7 @@ class AbstractAttribute(metaclass=ABCMeta):
                 The function used to handle the specialisation
         """
 
-        possible_shapes = get_function_argument_shapes(specialisation_function)
+        possible_shapes = get_simple_function_argument_shapes(specialisation_function)
 
         for argument_shape in possible_shapes:
             if access_method not in cls.supported_specialisations:
