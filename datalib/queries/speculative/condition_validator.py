@@ -114,7 +114,7 @@ class AbstractAttribute(metaclass=ABCMeta):
                 The function used to handle the specialisation
         """
 
-        possible_shapes = get_simple_function_argument_shapes(specialisation_function)
+        possible_shapes: list[FunctionParameterSignature] = get_simple_function_argument_shapes(specialisation_function)
 
         for argument_shape in possible_shapes:
             if access_method not in cls.supported_specialisations:

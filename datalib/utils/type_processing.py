@@ -11,7 +11,7 @@ import itertools
 
 import datalib.utils.db_utils as db_utils
 
-FunctionParameterSignature = tuple[tuple[object, ...], tuple[tuple[str, object]]]
+type FunctionParameterSignature = tuple[tuple[object, ...], tuple[tuple[str, object]]]
 
 def is_type(obj: Any) -> bool:
     """
@@ -339,3 +339,11 @@ def get_simple_function_argument_shapes[**P](f: Callable[P, ...]) \
 def function_belongs_to_class(function: Callable, class_: type) -> bool:
     """Returns whether the function belongs to the class"""
     return getattr(class_, function.__name__, None) == function
+
+def is_class_method(function: Callable):
+    """Returns whether the function is a classmethod of the provided class"""
+    parent_class: Optional[type] = getattr(function, "__self__", None)
+
+def adapt_signature_for_object_calling(function: Callable, signature: FunctionParameterSignature):
+    # TODO figure out if function is classmethod
+    ...
