@@ -33,7 +33,7 @@ class TextInput:
 @dataclass
 class Plugin:
     id: str
-    allowed_tools: Optional[list[str]]
+    allowed_tools: Optional[list[str]] = None
 
     type: str = "plugin"
 
@@ -41,27 +41,27 @@ class Plugin:
 class EphemeralMCP:
     server_label: str
     server_url: str
-    allowed_tools: Optional[list[str]]
-    headers: Optional[dict[str, JSON]]
+    allowed_tools: Optional[list[str]] = None
+    headers: Optional[dict[str, JSON]] = None
     type: str = "ephemeral_mcp"
 
 @dataclass
 class ModelChatRequest:
     model: str
     input: str | list[TextInput | ImageInput]
-    system_prompt: Optional[str]
-    integrations: Optional[list[str | Plugin | EphemeralMCP]]
-    stream: Optional[bool]# Defaults to false
-    temperature: Optional[number]
-    top_p: Optional[number]
-    top_k: Optional[int]
-    min_p: Optional[number]
-    repeat_penalty: Optional[number]
-    max_output_tokens: Optional[int]
-    reasoning: Optional[ReasoningOptions]
-    context_length: Optional[int]
-    store: Optional[bool]
-    previous_response_id: Optional[str]
+    system_prompt: Optional[str] = None
+    integrations: Optional[list[str | Plugin | EphemeralMCP]] = None
+    stream: Optional[bool] = None# Defaults to false
+    temperature: Optional[number] = None
+    top_p: Optional[number] = None
+    top_k: Optional[int] = None
+    min_p: Optional[number] = None
+    repeat_penalty: Optional[number] = None
+    max_output_tokens: Optional[int] = None
+    reasoning: Optional[ReasoningOptions] = None
+    context_length: Optional[int] = None
+    store: Optional[bool] = None
+    previous_response_id: Optional[str] = None
 
 @dataclass
 class Message:
@@ -115,14 +115,17 @@ class Stats:
     reasoning_output_tokens: number
     tokens_per_second: number
     time_to_first_token_seconds: number
-    model_load_time_seconds: Optional[number]
+    model_load_time_seconds: Optional[number] = None
+
+class ModelError(Exception):
+    ...
 
 @dataclass
 class ModelResponse:
     model_instance_id: str
     output: list[Message | ToolCall | Reasoning | InvalidToolCall]
     stats: Stats
-    response_id: Optional[str]
+    response_id: Optional[str] = None
 
     @staticmethod
     def from_json(json: dict) -> "ModelResponse":
@@ -152,4 +155,7 @@ class ModelResponse:
                     args["stats"] = Stats(**value)
                 case "response_id":
                     args["response_id"] = value
+                case "error":
+                    raise ModelError(f"Model returned an error {value}")
         return ModelResponse(**args)
+w

@@ -6,7 +6,7 @@ from typing import Optional
 import requests
 import json
 import os
-from modeldata import ModelChatRequest, ModelResponse, Plugin
+from modeldata import ModelChatRequest, ModelResponse, Plugin, Reasoning
 import lm_utils
 
 @dataclass
@@ -31,6 +31,38 @@ class ModelRequester:
         r = requests.post(url=self.url + "/api/v1/chat", headers=headers, data=data)
         return ModelResponse.from_json(r.json())
 
+    def get_manager(self) -> lm_utils.FunctionScheduler[ModelChatRequest, ModelResponse]:
+        return lm_utils.FunctionScheduler(self.send_request)
+
+class ContinuityError(Exception):
+    ...
+
+@dataclass
+class ConversationFrame:
+    prompt: ModelChatRequest
+    response: ModelResponse
+    parent: Optional["ConversationFrame"]
+
+    def __post_init__(self):
+        if self.parent:
+            if self.parent.response.response_id != self.prompt.previous_response_id:
+                raise ContinuityError("Prompt's parent is not correct")
+
+    def get_response_id(self) -> Optional[str]:
+        return self.response.response_id
+
+    def get_thoughts(self) -> list[Reasoning]:
+        reasoning_blocks = filter(
+            lambda x: isinstance(x, Reasoning),
+            self.response.output
+        )
+
+        return list(reasoning_blocks)
+
+@dataclass
+class ConversationTree:
+    ...
+
 def main():
     load_dotenv()
 
@@ -39,12 +71,11 @@ def main():
         input="What have I asked in this conversation?",
         integrations=[
             Plugin(
-                id="mcp/playwright",
+                id="mcp/playwright"
             )
         ],
         store=True,
-        context_length=10000,
-        previous_response_id="resp_d08ac0a894baab6fa459254a4fb5df2f4b2f3d9d681bd7f3"
+        context_length=10000
     )
 
     requester: ModelRequester = ModelRequester()

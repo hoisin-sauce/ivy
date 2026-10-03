@@ -157,7 +157,7 @@ class Scheduler[A, B]:
     process: Callable[[A], B]
     request_queue: queue.Queue[Request[A, B]]
 
-    def __post_init__(self) -> None:
+    def __init__(self) -> None:
         """
         Initialises the thread managing the scheduler as a daemon
         """
@@ -208,6 +208,12 @@ class Scheduler[A, B]:
             Nothing
         """
         ...
+
+class FunctionScheduler[A, B](Scheduler[A, B]):
+    def __init__(self, process: Callable[[A], B]):
+        self.process = process
+        self.request_queue = queue.Queue()
+        super().__init__()
 
 # shock horror ai code
 def format_with_tabs(obj, indent=0):
