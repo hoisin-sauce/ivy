@@ -11,3 +11,7 @@ class OptionalField:
 @dataclass
 class ExampleForeign:
     data: str
+
+@dataclass
+class ExampleParent:
+    field: ExampleForeign
