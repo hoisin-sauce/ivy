@@ -6,7 +6,8 @@ from typing import ClassVar, Optional, override, Self
 
 from datalib.queries.speculative.condition_specifier import AccessMethod, Attribute, AttributeComparison, Comparison, AttributeAccess
 from datalib.utils.db_utils import flatten_to_list
-from datalib.utils.type_processing import get_simple_function_argument_shapes, type_map, FunctionParameterSignature
+from datalib.utils.type_processing import get_simple_function_argument_shapes, type_map, FunctionParameterSignature, \
+    function_is_class_method, function_belongs_to_class
 
 
 @dataclass
@@ -62,7 +63,7 @@ class AbstractAttribute(metaclass=ABCMeta):
         ClassVar[
             dict[
                 tuple[AccessMethod, FunctionParameterSignature],
-                Callable[..., AttributeDetails]
+                Callable[[Self, ...], AttributeDetails]
             ]
         ]
 
@@ -114,7 +115,25 @@ class AbstractAttribute(metaclass=ABCMeta):
                 The function used to handle the specialisation
         """
 
-        possible_shapes: list[FunctionParameterSignature] = get_simple_function_argument_shapes(specialisation_function)
+        # Adapt function and signature to ignore self in the signature if it is included
+        # And add a discarded self value if it is not included
+
+        if not function_is_class_method(specialisation_function, cls) and \
+                function_belongs_to_class(specialisation_function, cls):
+
+            possible_shapes: list[FunctionParameterSignature] = \
+                get_simple_function_argument_shapes(
+                    specialisation_function,
+                    cutoff_before=1 # skip the self parameter
+                )
+
+        else:
+            possible_shapes: list[FunctionParameterSignature] = get_simple_function_argument_shapes(specialisation_function)
+
+            def run_specialisation(self, *args, **kwargs):
+                return specialisation_function(*args, **kwargs)
+
+            specialisation_function = run_specialisation
 
         for argument_shape in possible_shapes:
             if access_method not in cls.supported_specialisations:
@@ -168,7 +187,7 @@ class AbstractAttribute(metaclass=ABCMeta):
         kw_params_mapping = {k:v for k,v in access_method.kw_params}
 
         next_types = self.specialisation_functions[function_access_signature]\
-                      (*access_method.ordered_params, **kw_params_mapping)
+                      (self, *access_method.ordered_params, **kw_params_mapping)
 
         name = next_types.attribute_name if next_types.attribute_name else self.name
 

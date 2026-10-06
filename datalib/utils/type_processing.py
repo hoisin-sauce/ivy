@@ -360,11 +360,10 @@ def function_belongs_to_class(function: Callable, class_: type) -> bool:
     """Returns whether the function belongs to the class"""
     return getattr(class_, function.__name__, None) == function
 
+def function_is_class_method(function: Callable, class_: type) -> bool:
+    return getattr(function, "__self__", None) == class_
+
 def is_class_method(function: Callable):
     """Returns whether the function is a class method of the provided class"""
     parent_class: Optional[type] = getattr(function, "__self__", None)
     raise NotImplementedError
-
-def adapt_signature_for_object_calling(function: Callable, signature: FunctionParameterSignature):
-    # TODO figure out if function is classmethod
-    ...
