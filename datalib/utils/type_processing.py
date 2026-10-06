@@ -264,7 +264,51 @@ def get_function_argument_shape[**P](f: Callable[P, ...],
 
     return parameters
 
-def get_simple_function_argument_shapes[**P](f: Callable[P, ...]) \
+def get_named_parameter_start_point(parameters: MappingProxyType[str, inspect.Parameter]) -> int:
+    try:
+        return next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
+    except StopIteration:
+        return len(parameters)
+
+def map_to_possible_types(parameter_names: list[str], parameters: MappingProxyType[str, inspect.Parameter]) \
+        -> list[tuple[type, ...]]:
+    # Map parameters to the tuple of types that could represent them
+    positional_parameter_types: list[tuple[type, ...]] = list(
+        map(
+            lambda par: resolve_to_possible_types(parameters[par].annotation),
+            parameter_names
+        )
+    )
+
+    return positional_parameter_types
+
+def map_to_possible_name_pairs(parameter_names: list[str], parameters: MappingProxyType[str, inspect.Parameter]) \
+        -> list[tuple[tuple[str, type], ...]]:
+    named_parameter_name_type_pairs: list[tuple[tuple[str, type], ...]] = list(
+        map(
+            lambda par: tuple((par, t) for t in resolve_to_possible_types(parameters[par].annotation)),
+            parameter_names
+        )
+    )
+    return named_parameter_name_type_pairs
+
+def get_all_shapes_from_argument_types(positional_parameter_types: list[tuple[type, ...]],
+                                       named_parameter_pairs: list[tuple[tuple[str, type], ...]]) -> list[FunctionParameterSignature]:
+    # Find all permutations of positional and named parameters
+    possible_positional_parameter_shapes: Iterable[tuple[type, ...]] = \
+        itertools.product(*positional_parameter_types)
+
+    possible_named_parameter_shapes: Iterable[tuple[tuple[str, object], ...]] = \
+        itertools.product(*named_parameter_pairs)
+
+    # Find all permutations of those
+    possible_signatures: Iterable[FunctionParameterSignature] = \
+        itertools.product(possible_positional_parameter_shapes,
+                          possible_named_parameter_shapes)
+
+    return list(possible_signatures)
+
+def get_simple_function_argument_shapes[**P](f: Callable[P, ...], cutoff_before: int=0) \
         -> list[FunctionParameterSignature]:
     """
     Get all possible shapes that a function could be, including permutations of
@@ -275,6 +319,8 @@ def get_simple_function_argument_shapes[**P](f: Callable[P, ...]) \
     Args:
         f:
             Function to be inspected
+        cutoff_before:
+            Number of initial arguments to be excluded, e.g. adapting the signature to use self or cls
     Returns:
         List of tuples representing the possible argument structures.
         Tuples match the following form
@@ -290,59 +336,34 @@ def get_simple_function_argument_shapes[**P](f: Callable[P, ...]) \
 
     # TODO make so that blocking parameters is not necessary
 
-    parameters = get_function_argument_shape(
+    parameters: MappingProxyType[str, inspect.Parameter] = get_function_argument_shape(
         f,
         blocked_parameter_types=(inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
     )
 
     # Get end of named arguments
-    try:
-        named_argument_cutoff = \
-            next((i for i, v in enumerate(parameters) if parameters[v].default != inspect.Parameter.empty))
-    except StopIteration:
-        named_argument_cutoff = len(parameters)
+    named_argument_cutoff: int = get_named_parameter_start_point(parameters)
 
-    positional_parameter_names = list(parameters)[:named_argument_cutoff]
+    positional_parameter_names = list(parameters)[cutoff_before:named_argument_cutoff]
     named_parameter_names = list(parameters)[named_argument_cutoff:]
 
+    positional_parameter_types: list[tuple[type, ...]] = \
+        map_to_possible_types(positional_parameter_names, parameters)
+    named_parameter_name_type_pairs: list[tuple[tuple[str, type], ...]] = \
+        map_to_possible_name_pairs(named_parameter_names, parameters)
 
-    # Map parameters to the tuple of types that could represent them
-    positional_parameter_types: list[tuple[type, ...]] = list(
-        map(
-            lambda par: resolve_to_possible_types(parameters[par].annotation),
-            positional_parameter_names
-        )
-    )
 
-    # Here the tuple needs to also store the combinations
-    named_parameter_name_type_pairs: list[tuple[tuple[str, type]]] = list(
-        map(
-            lambda par: tuple((par, t) for t in resolve_to_possible_types(parameters[par].annotation)),
-            named_parameter_names
-        )
-    )
+    return get_all_shapes_from_argument_types(positional_parameter_types, named_parameter_name_type_pairs)
 
-    # Find all permutations of positional and named parameters
-    possible_positional_parameter_shapes: Iterable[tuple[type, ...]] = \
-        itertools.product(*positional_parameter_types)
-
-    possible_named_parameter_shapes: Iterable[tuple[tuple[str, object]]] = \
-        itertools.product(*named_parameter_name_type_pairs)
-
-    # Find all permutations of those
-    possible_signatures: Iterable[FunctionParameterSignature] = \
-        itertools.product(possible_positional_parameter_shapes,
-                          possible_named_parameter_shapes)
-
-    return list(possible_signatures)
 
 def function_belongs_to_class(function: Callable, class_: type) -> bool:
     """Returns whether the function belongs to the class"""
     return getattr(class_, function.__name__, None) == function
 
 def is_class_method(function: Callable):
-    """Returns whether the function is a classmethod of the provided class"""
+    """Returns whether the function is a class method of the provided class"""
     parent_class: Optional[type] = getattr(function, "__self__", None)
+    raise NotImplementedError
 
 def adapt_signature_for_object_calling(function: Callable, signature: FunctionParameterSignature):
     # TODO figure out if function is classmethod
