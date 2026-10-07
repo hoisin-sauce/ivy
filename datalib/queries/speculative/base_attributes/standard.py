@@ -109,5 +109,5 @@ class TypeTypeManager(AbstractAttributeTypeManager[type]):
                 ]
             )
 
-EXPORTED_TYPE_MANGERS = [TypeTypeManager]
+EXPORTED_TYPE_MANGERS = [TypeTypeManager()]
 EXPORTED_ROOT_TYPE = StandardRootTable

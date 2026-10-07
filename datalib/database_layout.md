@@ -240,7 +240,7 @@ class B:
 ...
 dbi: DatabaseManager[SQLiteString, dict]
 
-data: Generator[B, None, None] = dbi.select(B).where(B["A"]["field"] == 1).get_values()
+data: Generator[B, None, None] = dbi.select(B).where(B["reference"]["field"] == 1).get_values()
 ```
 
 Where the objects returned in data match the output from the query

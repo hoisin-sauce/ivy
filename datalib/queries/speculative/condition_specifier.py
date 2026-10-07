@@ -1,8 +1,11 @@
+from abc import ABCMeta
 from dataclasses import dataclass
 from enum import Enum, auto
+from collections.abc import Callable
 from types import ModuleType
 
-from datalib.utils.type_processing import get_types_in_module
+from datalib.utils.type_processing import \
+    get_types_in_module, FunctionParameterSignature, type_map, tuple_map_value_type_map
 
 class AccessMethod(Enum):
     """
@@ -79,7 +82,13 @@ class AttributeAccess:
     """
     method: AccessMethod
     ordered_params: tuple[object, ...]
-    kw_params: tuple[tuple[str, object]]
+    kw_params: tuple[tuple[str, object], ...]
+
+    def get_type_signature(self) -> FunctionParameterSignature:
+        ordered_types = type_map(self.ordered_params)
+        keyword_types = tuple_map_value_type_map(self.kw_params)
+
+        return ordered_types, keyword_types
 
 @dataclass
 class Attribute:
@@ -146,15 +155,12 @@ class Attribute:
             access=AttributeAccess(
                 method=AccessMethod.CALL,
                 ordered_params=args,
-                kw_params=tuple(kwargs.items())),
+                kw_params=tuple(kwargs.items())), # TODO fix
             parent=self)
 
-
-class QueryableTable:
-    """
-    Parent class for queryable classes, if that is the preferred method of implementation
-    """
-    def __class_getitem__(cls, item: str) -> Attribute:
+def get__class_getitem__(cls: type) -> Callable[..., Attribute]:
+    """Returns the __class_getitem__ call for the required class prefilled"""
+    def cls_getitem(item: object) -> Attribute:
         return Attribute(
             access=AttributeAccess(
                 method=AccessMethod.GETITEM,
@@ -162,6 +168,19 @@ class QueryableTable:
                 kw_params=tuple()
             ),
             parent=cls)
+    return cls_getitem
+
+class QueryableTable(metaclass=ABCMeta):
+    """
+    Parent class for queryable classes, if that is the preferred method of implementation
+    """
+    def __class_getitem__(cls, item: object) -> Attribute:
+        """stub implementation for typechecking"""
+        raise NotImplementedError
+
+    def __init_subclass__(cls) -> None:
+        """Correctly setup the __class_getitem__ call with the subclass instance"""
+        cls.__class_getitem__ = get__class_getitem__(cls)
 
 def make_class_queryable(cls: type) -> None:
     """
@@ -170,7 +189,7 @@ def make_class_queryable(cls: type) -> None:
         cls:
             The class to be changed
     """
-    setattr(cls, '__class_getitem__', QueryableTable.__class_getitem__)
+    setattr(cls, '__class_getitem__', get__class_getitem__(cls))
 
 def make_module_queryable(module: ModuleType) -> None:
     for cls in get_types_in_module(module):

@@ -7,7 +7,7 @@ def test_base_getitem_attribute():
     example_attribute = TestEntryPoint["field"]
 
     assert isinstance(example_attribute, condition_specifier.Attribute)
-    assert example_attribute.parent == TestEntryPoint
+    assert example_attribute.parent == TestEntryPoint, f"Expected parent to be {TestEntryPoint.__name__}, was {example_attribute.parent} instead"
     assert example_attribute.accessed_by == condition_specifier.AccessMethod.GETITEM
     assert example_attribute.accessed_with == "field"
 
@@ -40,3 +40,18 @@ def test_condition_creation_eq():
 
 def test_example_callable_attribute():
     example_callable = TestEntryPoint["field"].option(0)
+
+def test_adding_new_getitem():
+    from test.datalib.data import test_data_foreign as td
+
+    condition_specifier.make_module_queryable(td)
+
+    attribute: condition_specifier.Attribute = td.ExampleParent["field"]
+
+    assert attribute.parent == td.ExampleParent
+
+if __name__ == "__main__":
+    test_base_getitem_attribute()
+    test_condition_creation_eq()
+    test_nested_getitem_attribute()
+    test_adding_new_getitem()

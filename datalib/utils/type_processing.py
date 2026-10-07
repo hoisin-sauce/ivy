@@ -11,7 +11,7 @@ import itertools
 
 import datalib.utils.db_utils as db_utils
 
-type FunctionParameterSignature = tuple[tuple[object, ...], tuple[tuple[str, object]]]
+type FunctionParameterSignature = tuple[tuple[object, ...], tuple[tuple[str, object], ...]]
 
 def is_type(obj: Any) -> bool:
     """
@@ -223,6 +223,9 @@ def type_map(container: Iterable) -> tuple[type, ...]:
     """Maps the provided container to a tuple of the types of its items"""
     return tuple(map(type, container))
 
+def tuple_map_value_type_map[T](mapping: tuple[tuple[T, object], ...]) -> tuple[tuple[T, type], ...]:
+    return tuple((k, type(v)) for k,v in mapping)
+
 type ParamKind = inspect._ParameterKind
 
 def get_function_argument_shape[**P](f: Callable[P, ...],
@@ -360,8 +363,28 @@ def function_belongs_to_class(function: Callable, class_: type) -> bool:
     """Returns whether the function belongs to the class"""
     return getattr(class_, function.__name__, None) == function
 
-def function_is_class_method(function: Callable, class_: type) -> bool:
-    return getattr(function, "__self__", None) == class_
+def function_is_class_method(function: Callable, class_: Optional[type] = None) -> bool:
+    if class_ is not None:
+        return getattr(function, "__self__", None) == class_
+
+    else:
+        class_ = getattr(function, "__self__", None)
+
+        if class_ is None or not isinstance(class_, type):
+            return False
+
+        return function_belongs_to_class(function, class_)
+
+def function_is_non_class_method(function: Callable) -> bool:
+    class_ = getattr(function, "__class__", None)
+
+    if class_ is None:
+        return False
+
+    class_func = getattr(class_, function.__name__, None)
+
+    return class_func is function
+
 
 def is_class_method(function: Callable):
     """Returns whether the function is a class method of the provided class"""
