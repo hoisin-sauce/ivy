@@ -93,10 +93,10 @@ class AbstractAttribute(metaclass=ABCMeta):
         cls.supported_comparisons = list()
 
         if specialisations:
-            map(
+            list(map(
                 lambda specialisation: cls.register_specialisation(*specialisation),
                 specialisations
-            )
+            ))
 
     @classmethod
     def register_specialisation(cls: "type[AbstractAttribute]",
@@ -114,6 +114,8 @@ class AbstractAttribute(metaclass=ABCMeta):
             specialisation_function: 
                 The function used to handle the specialisation
         """
+
+        # TODO figure out how to structure to allow for kwargs to be optional
 
         # Adapt function and signature to ignore self in the signature if it is included
         # And add a discarded self value if it is not included

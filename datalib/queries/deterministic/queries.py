@@ -95,7 +95,7 @@ class Query[T](abstract_query.Query[DeterministicQuery, T]):
     def __repr__(self) -> str:
         return f"SELECTING {self.expected_type.__name__} WHERE {self.conditions}"
 
-class QueryBundle[*Ts]:
+class QueryBundle[*Ts](abstract_query.QueryBundle[DeterministicQuery, Ts]):
     """
     Group of queries that can be executed simultaneously
     """

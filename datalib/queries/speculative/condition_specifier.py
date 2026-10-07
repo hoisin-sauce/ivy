@@ -85,6 +85,7 @@ class AttributeAccess:
     kw_params: tuple[tuple[str, object], ...]
 
     def get_type_signature(self) -> FunctionParameterSignature:
+        # TODO get deeper to support nested tuple signatures
         ordered_types = type_map(self.ordered_params)
         keyword_types = tuple_map_value_type_map(self.kw_params)
 
@@ -105,6 +106,7 @@ class Attribute:
 
 
     def __getattr__(self, item: str) -> "Attribute":
+        # TODO error on dunder methods
         return Attribute(
             access=AttributeAccess(
                 method=AccessMethod.GETATTR,
@@ -147,6 +149,7 @@ class Attribute:
                          operator=AttributeComparison.NEQ)
 
     def __contains__(self, item: object) -> Condition:
+        # TODO error, contains is coerced to a boolean
         return Condition(left=self, right=item,
                          operator=AttributeComparison.CONTAINS)
 

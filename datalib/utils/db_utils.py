@@ -56,3 +56,24 @@ def public_dir(obj: Any) -> list[str]:
             dir(obj)
         )
     )
+
+def remove_duplicates_preserving_order[T](lst: list[T]) -> list[T]:
+    """
+    Remove all duplicate entries from a list whilst preserving order.
+    Requires all elements in the list to be hashable.
+    Args:
+        lst:
+            List of elements to be checked for duplication
+    Returns:
+        List of elements without any duplicate entries
+    Raises:
+        TypeError
+            If a value is not hashable
+    """
+
+    seen = set()
+    seen_add = seen.add
+
+    # this allows for it to be called every iteration
+    # noinspection none-function-assignment
+    return [x for x in lst if not (x in seen or seen_add(x))]

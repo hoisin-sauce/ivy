@@ -5,8 +5,7 @@ from dataclasses import dataclass
 from collections.abc import Generator, Callable
 import typing
 
-from datalib.queries.deterministic.queries import QueryBundle
-from datalib.queries.abstract_query import Query
+from datalib.queries.abstract_query import Query, QueryBundle
 from datalib.structure.schema import TableStructure
 
 @dataclass
@@ -42,7 +41,7 @@ class QueryBundleTranslator[QueryType, OutputType](QueryTranslator[QueryType, Ou
     specified output format
     """
     @abstractmethod
-    def translate_query_bundle[T](self, query: QueryBundle[T]) -> QueryToBeResolved[T, OutputType]:
+    def translate_query_bundle[T](self, query: QueryBundle[QueryType, T]) -> QueryToBeResolved[T, OutputType]:
         ...
 
 Format = typing.TypeVar("Format")
