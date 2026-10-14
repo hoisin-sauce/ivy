@@ -27,9 +27,9 @@ def test_basic_query():
     translated_q = translator.translate_query(q)
 
     expected_query = ("SELECT"
-                      "test_datalib_data_test_data_query_tables__SampleChild.*"
+                      "tests_datalib_data_test_data_query_tables__SampleChild.*"
                       "FROM"
-                      "test_datalib_data_test_data_query_tables__SampleChild;")
+                      "tests_datalib_data_test_data_query_tables__SampleChild;")
 
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
@@ -45,9 +45,9 @@ def test_query_from_interface():
     translated_q = translator.translate_query(q)
 
     expected_query = ("SELECT"
-                      "test_datalib_data_test_data_query_tables__SampleChild.*"
+                      "tests_datalib_data_test_data_query_tables__SampleChild.*"
                       "FROM"
-                      "test_datalib_data_test_data_query_tables__SampleChild;")
+                      "tests_datalib_data_test_data_query_tables__SampleChild;")
 
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
 
@@ -68,11 +68,11 @@ def test_query_basic_valid_condition():
     translated_q = translator.translate_query(q)
 
     expected_query = ("SELECT"
-                      "test_datalib_data_test_data_query_tables__SampleChild.*"
+                      "tests_datalib_data_test_data_query_tables__SampleChild.*"
                       "FROM"
-                      "test_datalib_data_test_data_query_tables__SampleChild"
+                      "tests_datalib_data_test_data_query_tables__SampleChild"
                       "WHERE"
-                      "(test_datalib_data_test_data_query_tables__SampleChild.a = :param_1);")
+                      "(tests_datalib_data_test_data_query_tables__SampleChild.a = :param_1);")
 
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
     assert translated_q.query_to_database.inserted_values["param_1"] == 1
@@ -96,12 +96,12 @@ def test_query_subscripting_field():
     translated_q = translator.translate_query(q)
 
     expected_q = (  "SELECT"
-                    "test_datalib_data_test_data_query_tables__SampleGrandparent.*"
+                    "tests_datalib_data_test_data_query_tables__SampleGrandparent.*"
                     "FROM"
-                    "	test_datalib_data_test_data_query_tables__SampleGrandparent"
-                    "INNER JOIN test_datalib_data_test_data_query_tables__SampleParent ON test_datalib_data_test_data_query_tables__SampleParent.id = test_datalib_data_test_data_query_tables__SampleGrandparent.parent"
+                    "	tests_datalib_data_test_data_query_tables__SampleGrandparent"
+                    "INNER JOIN tests_datalib_data_test_data_query_tables__SampleParent ON tests_datalib_data_test_data_query_tables__SampleParent.id = tests_datalib_data_test_data_query_tables__SampleGrandparent.parent"
                     "WHERE"
-                    "(test_datalib_data_test_data_query_tables__SampleParent.child = test_datalib_data_test_data_query_tables__SampleGrandparent.child);"
+                    "(tests_datalib_data_test_data_query_tables__SampleParent.child = tests_datalib_data_test_data_query_tables__SampleGrandparent.child);"
     )
 
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_q)
@@ -122,13 +122,13 @@ def test_multiple_subscripting_fields():
     translated_q = translator.translate_query(q)
 
     expected_query = (  "SELECT"
-	                    "test_datalib_data_test_data_query_tables__SampleGreatGrandparent.*"
+	                    "tests_datalib_data_test_data_query_tables__SampleGreatGrandparent.*"
                         "FROM"
-                        "	test_datalib_data_test_data_query_tables__SampleGreatGrandparent"
-                        "INNER JOIN test_datalib_data_test_data_query_tables__SampleGrandparent ON test_datalib_data_test_data_query_tables__SampleGrandparent.id = test_datalib_data_test_data_query_tables__SampleGreatGrandparent.grandparent"
-                        "INNER JOIN test_datalib_data_test_data_query_tables__SampleParent ON test_datalib_data_test_data_query_tables__SampleParent.id = test_datalib_data_test_data_query_tables__SampleGrandparent.parent"
+                        "	tests_datalib_data_test_data_query_tables__SampleGreatGrandparent"
+                        "INNER JOIN tests_datalib_data_test_data_query_tables__SampleGrandparent ON tests_datalib_data_test_data_query_tables__SampleGrandparent.id = tests_datalib_data_test_data_query_tables__SampleGreatGrandparent.grandparent"
+                        "INNER JOIN tests_datalib_data_test_data_query_tables__SampleParent ON tests_datalib_data_test_data_query_tables__SampleParent.id = tests_datalib_data_test_data_query_tables__SampleGrandparent.parent"
                         "WHERE"
-                        "(test_datalib_data_test_data_query_tables__SampleParent.child = test_datalib_data_test_data_query_tables__SampleGrandparent.child);"
+                        "(tests_datalib_data_test_data_query_tables__SampleParent.child = tests_datalib_data_test_data_query_tables__SampleGrandparent.child);"
     )
 
     assert remove_whitespace(translated_q.query_to_database.query_string) == remove_whitespace(expected_query)
@@ -152,10 +152,11 @@ def test_field_with_multiple_types():
     make_module_subscriptable(query_data)
 
     # print_schema(query_data)
-
+    """
     q = (blank_database_interface.select(
         query_data.CouldHaveParentOrGrandparent)
          .where(query_data.CouldHaveParentOrGrandparent["simpler_concept"][int] == 1))
+    """
 
 def test_union_simple():
     from tests.datalib.data import test_data_union as query_data

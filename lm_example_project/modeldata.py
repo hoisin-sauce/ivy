@@ -158,4 +158,3 @@ class ModelResponse:
                 case "error":
                     raise ModelError(f"Model returned an error {value}")
         return ModelResponse(**args)
-w

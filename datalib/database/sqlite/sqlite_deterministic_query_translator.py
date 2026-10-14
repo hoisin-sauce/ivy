@@ -1,6 +1,6 @@
 """ Translates the limited DeterministicQuery objects into sqlite query text
 """
-import warnings
+from warnings import deprecated
 from dataclasses import dataclass
 from collections.abc import Iterable
 
@@ -113,7 +113,7 @@ class SQLiteConditionFragment:
         return self.where_string, self.join_strings, self.parameters
 
 
-@warnings.deprecated("Deterministic Queries are limited in their expressibility and as such are no longer under development")
+@deprecated("Deterministic Queries are limited in their expressibility and as such are no longer under development")
 class SQLiteQueryTranslator(QueryTranslator[DeterministicQuery, SQLiteString]):
     """
     Implementation of the QueryTranslator interface mapping a query of type
