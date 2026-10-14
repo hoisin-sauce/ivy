@@ -42,7 +42,7 @@ def test_example_callable_attribute():
     example_callable = TestEntryPoint["field"].option(0)
 
 def test_adding_new_getitem():
-    from test.datalib.data import test_data_foreign as td
+    from tests.datalib.data import test_data_foreign as td
 
     condition_specifier.make_module_queryable(td)
 

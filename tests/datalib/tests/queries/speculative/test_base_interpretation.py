@@ -5,7 +5,7 @@ def setup_env():
     ...
 
 def test_foreign_simple():
-    from test.datalib.data import test_data_foreign as td
+    from tests.datalib.data import test_data_foreign as td
     condition_specifier.make_module_queryable(td)
 
     test_attribute: condition_specifier.Attribute = td.ExampleParent["field"]
@@ -46,7 +46,7 @@ def test_foreign_simple():
 
 
 def test_nested_foreign():
-    from test.datalib.data import test_data_foreign as td
+    from tests.datalib.data import test_data_foreign as td
     condition_specifier.make_module_queryable(td)
 
     test_attribute = td.ExampleParent["field"]["data"]
@@ -59,11 +59,26 @@ def test_nested_foreign():
     validated_attribute_collection = attribute_manager.validate_attribute(test_attribute)
     validated_attribute: condition_validator.AbstractAttribute = validated_attribute_collection.attributes[0]
 
+    # TODO write tests
 
+def test_foreign_specified_type():
+    from tests.datalib.data import test_data_foreign as td
+    condition_specifier.make_module_queryable(td)
+
+    test_attribute = td.ExampleParent["field", td.ExampleForeign]
+
+    attribute_manager = condition_validator.DatatypeConverter(
+        type_managers=standard.EXPORTED_TYPE_MANGERS,
+        root_attribute_type=standard.EXPORTED_ROOT_TYPE
+    )
+
+    validated_attribute_collection = attribute_manager.validate_attribute(test_attribute)
+    ...
 
 def main():
     test_foreign_simple()
     test_nested_foreign()
+    test_foreign_specified_type()
 
 if __name__ == "__main__":
     main()

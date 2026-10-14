@@ -7,7 +7,7 @@ def test_type_creation():
     assert new_type.__annotations__ == {"int": int, "str": str}
 
 def test_function_argument_shapes():
-    from test.datalib.data import test_data_sample_functions as sample_functions
+    from tests.datalib.data import test_data_sample_functions as sample_functions
     argument_shape = get_simple_function_argument_shapes(sample_functions.f)
 
     print(argument_shape)
